@@ -644,3 +644,28 @@ footer {
     rotate: z -360deg;
   }
 }
+
+/* testing */
+@media (height <= 650px) {
+  .content
+    > #prayerTimesPage
+    > .times
+    > .prayers
+    > .prayer:is(.sunrise, .midnight) {
+    display: none;
+  }
+
+  nav > * {
+    width: 60px !important;
+    height: 50px !important;
+    gap: 5px !important;
+
+    & > i {
+      font-size: 0.9rem !important;
+    }
+
+    & > .txt {
+      font-size: 0.5rem !important;
+    }
+  }
+}
