@@ -669,4 +669,19 @@ footer {
       font-size: 0.5rem !important;
     }
   }
+
+  header {
+    gap: 7px !important;
+    font-size: 1.3rem !important;
+
+    & > .logo {
+      & > img {
+        width: 60px;
+      }
+
+      & > .txt {
+        font-size: 1.3rem;
+      }
+    }
+  }
 }
