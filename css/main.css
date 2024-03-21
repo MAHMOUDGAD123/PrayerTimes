@@ -656,8 +656,8 @@ footer {
   }
 
   nav > * {
-    width: 50px !important;
-    height: 50px !important;
+    width: 45px !important;
+    height: 45px !important;
     gap: 5px !important;
     padding: 5px;
 
