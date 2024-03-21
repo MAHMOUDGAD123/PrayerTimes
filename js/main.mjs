@@ -164,7 +164,7 @@ if (run) {
     if (address) {
       // add the location
       const address_ele = document.getElementById("city_country");
-      address_ele.textContent = `${address.city} - ${address.country}`;
+      address_ele.textContent = `${address.state} - ${address.country}`;
       // Month Calendar Page
       set_month_calendar(data);
     }
