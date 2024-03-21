@@ -657,11 +657,12 @@ footer {
 
   nav > * {
     width: 60px !important;
-    height: 50px !important;
+    height: 45px !important;
     gap: 5px !important;
+    padding: 5px;
 
     & > i {
-      font-size: 0.9rem !important;
+      font-size: 0.8rem !important;
     }
 
     & > .txt {
