@@ -657,7 +657,8 @@ footer {
 
   nav > * {
     width: 60px !important;
-    height: 60px !important;
+    /*height: 60px !important;*/
+    aspect-ratio: 1;
     gap: 5px !important;
     padding: 5px;
 
