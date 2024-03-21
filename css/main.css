@@ -656,10 +656,10 @@ footer {
   }
 
   nav > * {
-    width: 45px !important;
-    height: 45px !important;
+    width: 50px !important;
+    height: 50px !important;
     gap: 5px !important;
-    padding: 5px;
+    padding: 5px !important;
 
     & > i {
       font-size: 0.8rem !important;
