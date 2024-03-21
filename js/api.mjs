@@ -28,7 +28,7 @@ export const api = (time_only = false, month = 0, year = 0) => {
 
       console.log("Coordinates ✅", "\nlat:", lat, "\nlng:", lng);
 
-      const url = `http://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=5`;
+      const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=5`;
 
       let data = null;
       let location = null;
