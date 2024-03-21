@@ -662,11 +662,11 @@ footer {
     padding: 5px;
 
     & > i {
-      font-size: 0.9rem !important;
+      font-size: 1rem !important;
     }
 
     & > .txt {
-      font-size: 0.7rem !important;
+      font-size: 0.8rem !important;
     }
   }
 
