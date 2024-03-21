@@ -655,6 +655,13 @@ footer {
     display: none;
   }
 
+    .content
+    > #prayerTimesPage
+    > .times
+    > .prayers {
+      gap: 5px !important;
+    }
+
   nav > * {
     width: 50px !important;
     height: 50px !important;
