@@ -647,6 +647,9 @@ footer {
 
 /* testing */
 @media (height <= 700px) {
+  body {
+    gap: 10px;
+  }
   .content
     > #prayerTimesPage
     > .times
