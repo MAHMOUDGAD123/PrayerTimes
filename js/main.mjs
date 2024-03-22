@@ -103,8 +103,8 @@ const prayers = new Map([
       name: "Midnight",
       s_time: "00:00",
       time: {
-        hr: 24,
-        min: 0,
+        hr: 23,
+        min: 59,
       },
     },
   ],
