@@ -664,7 +664,7 @@ footer {
     > #prayerTimesPage
     > .times
     > .prayers {
-      gap: 7px !important;
+      gap: 10px !important;
     }
 
   nav > * {
