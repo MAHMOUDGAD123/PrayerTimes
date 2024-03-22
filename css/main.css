@@ -648,8 +648,10 @@ footer {
 /* testing */
 @media (height <= 700px) {
   body {
-    gap: 10px;
+    gap: 7px;
+    padding: var(--padding);
   }
+  
   .content
     > #prayerTimesPage
     > .times
