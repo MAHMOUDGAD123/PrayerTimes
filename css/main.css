@@ -344,6 +344,11 @@ main {
               }
             }
           }
+          @container html (inline-size < 870px) {
+            .prayer.midnight {
+              display: none;
+            }
+          }
         }
         @container html (inline-size >= 870px) {
           .prayers {
@@ -645,34 +650,37 @@ footer {
   }
 }
 
-/* testing */
-@media (height <= 650px) {
-  .content
-    > #prayerTimesPage
-    > .times
-    > .prayers
-    > .prayer:is(.sunrise, .midnight) {
-    display: none;
-  }
-
-  nav > * {
-    width: 60px !important;
-    height: 45px !important;
-    gap: 5px !important;
-    padding: 5px;
-
-    & > i {
-      font-size: 0.8rem !important;
+/* for mobile */
+@media (height <= 715px) {
+  main {
+    &
+      > .content
+      > #prayerTimesPage
+      > .times
+      > .prayers
+      > .prayer:is(.sunrise, .midnight) {
+      display: none;
     }
 
-    & > .txt {
-      font-size: 0.5rem !important;
+    & > nav > * {
+      width: 60px;
+      height: 45px;
+      gap: 5px;
+      padding: 5px;
+
+      & > i {
+        font-size: 0.8rem;
+      }
+
+      & > .txt {
+        font-size: 0.5rem;
+      }
     }
   }
 
   header {
-    gap: 7px !important;
-    font-size: 1.3rem !important;
+    gap: 7px;
+    font-size: 1.3rem;
 
     & > .logo {
       & > img {
