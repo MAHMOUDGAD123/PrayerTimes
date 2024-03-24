@@ -103,8 +103,8 @@ const prayers = new Map([
       name: "Midnight",
       s_time: "00:00",
       time: {
-        hr: 24,
-        min: 0,
+        hr: 23,
+        min: 59.5,
       },
     },
   ],
@@ -164,7 +164,9 @@ if (run) {
     if (address) {
       // add the location
       const address_ele = document.getElementById("city_country");
-      address_ele.textContent = `${address.city} - ${address.country}`;
+      const city = address.city;
+      const city_state = city ? city : address.state;
+      address_ele.textContent = `${city_state} - ${address.country}`;
       // Month Calendar Page
       set_month_calendar(data);
     }
