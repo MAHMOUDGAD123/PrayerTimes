@@ -651,7 +651,7 @@ footer {
 }
 
 /* for mobile */
-@media (height <= 715px) {
+@media (height <= 710px) {
   main {
     &
       > .content
@@ -663,8 +663,8 @@ footer {
     }
 
     & > nav > * {
-      width: 60px;
-      height: 45px;
+      width: 65px;
+      height: 50px;
       gap: 5px;
       padding: 5px;
 
