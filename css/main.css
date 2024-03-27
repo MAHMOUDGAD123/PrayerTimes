@@ -180,7 +180,7 @@ main {
     background-repeat: no-repeat;
     background-size: cover;
     position: relative;
-    padding: calc(var(--padding) * 2);
+    padding: var(--padding);
 
     & > * {
       width: 100%;
@@ -225,7 +225,7 @@ main {
         gap: 10px;
         align-items: center;
         justify-content: center;
-        margin-block-end: 15px;
+        margin-block-end: 10px;
 
         & > * {
           width: 100%;
@@ -234,7 +234,7 @@ main {
         }
 
         & > .weekday {
-          font-size: calc(1.7rem + 2vw);
+          font-size: calc(1.5rem + 2vw);
           align-items: center;
           gap: 10px;
 
