@@ -308,6 +308,7 @@ main {
           padding: var(--padding);
           align-items: center;
           justify-content: center;
+          white-space: normal;
 
           & > .prayer-name {
             font-size: 3rem;
