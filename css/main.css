@@ -69,8 +69,8 @@ body {
   height: 100dvh;
   background-color: #000;
   font-family: var(--en_font), monospace;
-  gap: 20px;
-  padding: var(--padding) 20px;
+  gap: 10px;
+  padding: var(--padding);
   display: flex;
   flex-direction: column;
   container: body / inline-size;
@@ -166,7 +166,7 @@ header {
 main {
   flex: 1;
   display: flex;
-  gap: 3px;
+  gap: 5px;
   border-radius: var(--border-rad);
   overflow: hidden;
   background-color: var(--orange1);
