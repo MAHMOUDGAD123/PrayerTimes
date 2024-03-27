@@ -7,13 +7,90 @@ import { frmt_time } from "./time.mjs";
 let run = true;
 let curr_prayer_key = 0;
 let curr_page = null;
+let en = true; // en: true | ar: false
+
+const en_ar = new Map([
+  // weekdays
+  ["Saturday", "السبت"],
+  ["Sunday", "الأحد"],
+  ["Monday", "الإثنين"],
+  ["Tuesday", "الثلاثاء"],
+  ["Wednesday", "الأربعاء"],
+  ["Thursday", "الخميس"],
+  ["Friday", "الجمعة"],
+  // short weakdays
+  ["sat", "السبت"],
+  ["sun", "الأحد"],
+  ["mon", "الإثنين"],
+  ["tue", "الثلاثاء"],
+  ["wed", "الأربعاء"],
+  ["thu", "الخميس"],
+  ["fri", "الجمعة"],
+
+  // gregorian months
+  ["January", "يناير"],
+  ["February", "فيراير"],
+  ["March", "مارس"],
+  ["April", "إبريل"],
+  ["May", "مايو"],
+  ["June", "يونيو"],
+  ["July", "يوليو"],
+  ["August", "أغسطس"],
+  ["September", "سبتمبر"],
+  ["October", "أكتوبر"],
+  ["November", "نوفمبر"],
+  ["December", "ديسمبر"],
+
+  // hijri months
+  ["Muḥarram", "محرم"],
+  ["Ṣafar", "سفر"],
+  ["Rabīʿ al-awwal", "ربيع الأول"],
+  ["Rabīʿ al-thānī", "ربيع الثاني"],
+  ["Jumādá al-ūlá", "جماد الأول"],
+  ["Jumādá al-ākhirah", "جماد الثاني"],
+  ["Rajab", "رجب"],
+  ["Shaʿbān", "شعبان"],
+  ["Ramaḍān", "رمضان"],
+  ["Shawwāl", "شوال"],
+  ["Dhū al-Qaʿdah", "ذو القعدة"],
+  ["Dhū al-Ḥijjah", "ذو الحجة"],
+
+  // nav
+  ["Prayers", "الصلوات"],
+  ["Calendar", "التاريخ"],
+  ["Settings", "الإعدادات"],
+
+  // prayers
+  ["Fajr", "الفجر"],
+  ["Sunrise", "الشروق"],
+  ["Dhuhr", "الظهر"],
+  ["Asr", "العصر"],
+  ["Maghrib", "المغرب"],
+  ["Isha", "العشاء"],
+  ["Midnight", "منتصف الليل"],
+
+  // settings
+  ["Language", "اللغة"],
+  ["Theme", "السمة"],
+  ["English", "إنجليزي"],
+  ["Arabic", "عربي"],
+
+  // others
+  ["Times", "أوقات"],
+  ["Today", "اليوم"],
+  ["Prayer", "الصلاة"],
+  ["Remaining Time", "الوقت المتبقي"],
+]);
 
 // page_btn_id => page_id
 const page_btn = new Map([
   ["prayerTimesPage", "prayer_times_btn"],
   ["monthCalendarPage", "month_cal_btn"],
-  // ["settingsPage", "settings_btn"],
+  ["settingsPage", "settings_btn"],
 ]);
+
+// settings_switch_id => action_function
+const settings_switches = new Map([["langSwitch", change_lang]]);
 
 const months = [
   "January",
@@ -177,6 +254,35 @@ if (run) {
 //====================== initialization & testing End =======================
 
 //========================= Functions Start =========================
+
+function change_lang() {
+  const all_txt = document.querySelectorAll("[data-en]");
+  const logo = document.querySelector(".logo > .txt");
+  const _switch = document.getElementById("langSwitch");
+
+  if (en) {
+    en = false;
+    _switch.classList.add("on");
+    document.body.classList.add("ar");
+    logo.classList.add("ar");
+
+    all_txt.forEach((ele) => {
+      const en_txt = ele.dataset.en;
+      ele.textContent = en_ar.get(en_txt);
+    });
+  } else {
+    en = true;
+    _switch.classList.remove("on");
+    document.body.classList.remove("ar");
+    logo.classList.remove("ar");
+
+    all_txt.forEach((ele) => {
+      const en_txt = ele.dataset.en;
+      ele.textContent = en_txt;
+    });
+  }
+}
+
 //---------- prayer Times Page ----------
 const update_dates_times = async () => {
   // use this function to update the (dates & times) at the end of the day
@@ -210,13 +316,30 @@ function set_times_dates(_today) {
   }
 
   // weekday
-  document.getElementById("today").textContent = gregorian.weekday.en;
+  const today_name = document.getElementById("today");
+  const weekday = gregorian.weekday.en;
+  today_name.dataset.en = weekday; // save the english word
 
   // dates
+  const h_month = document.querySelector(".month > .hijri");
+  const g_month = document.querySelector(".month > .melady");
+  const h_month_name = hijri.month.en;
+  const g_month_name = gregorian.month.en;
+  g_month.dataset.en = g_month_name;
+  h_month.dataset.en = h_month_name;
+
+  if (en) {
+    today_name.textContent = weekday;
+    h_month.textContent = h_month_name;
+    g_month.textContent = g_month_name;
+  } else {
+    today_name.textContent = en_ar.get(weekday);
+    h_month.textContent = en_ar.get(h_month_name);
+    g_month.textContent = en_ar.get(g_month_name);
+  }
+
   document.querySelector(".day > .hijri").textContent = hijri.day;
   document.querySelector(".day > .melady").textContent = gregorian.day;
-  document.querySelector(".month > .hijri").textContent = hijri.month.en;
-  document.querySelector(".month > .melady").textContent = gregorian.month.en;
   document.querySelector(".year > .hijri").textContent = hijri.year;
   document.querySelector(".year > .melady").textContent = gregorian.year;
 
@@ -369,8 +492,22 @@ function set_next_prayer(key) {
 
   prayers_list[key - 1].classList.add("picked");
 
-  document.querySelector(".times > .next-prayer > .prayer-name").textContent =
-    prayers.get(key).name;
+  const prayer_name = document.querySelector(
+    ".times > .next-prayer > .prayer-name"
+  );
+  const rem_time = document.querySelector(".times > .next-prayer > .txt");
+
+  const name = prayers.get(key).name;
+  const rem_time_txt = rem_time.dataset.en;
+  prayer_name.dataset.en = name;
+
+  if (en) {
+    prayer_name.textContent = name;
+    rem_time.textContent = rem_time_txt;
+  } else {
+    prayer_name.textContent = en_ar.get(name);
+    rem_time.textContent = en_ar.get(rem_time_txt);
+  }
 
   set_counter_down(key);
   curr_prayer_key = key;
@@ -381,12 +518,23 @@ function set_month_year_selections() {
   const month_sel = document.getElementById("t_sel_month");
   const year_sel = document.getElementById("t_sel_year");
   const now = new Date();
-  months.forEach((m, i) => {
-    month_sel.innerHTML += `<option value="${i + 1}" label="${m}"></option>`;
-  });
 
-  for (let s = 1980; s < 2051; ++s) {
-    year_sel.innerHTML += `<option value="${s}" label="${s}"></option>`;
+  if (en) {
+    months.forEach((m, i) => {
+      month_sel.innerHTML += `<option value="${
+        i + 1
+      }" data-en="${m}">${m}</option>`;
+    });
+  } else {
+    months.forEach((m, i) => {
+      month_sel.innerHTML += `<option value="${
+        i + 1
+      }" data-en="${m}">${en_ar.get(m)}</option>`;
+    });
+  }
+
+  for (let y = 1980; y < 2051; ++y) {
+    year_sel.innerHTML += `<option value="${y}">${y}</option>`;
   }
   // select the current month & year
   month_sel.querySelector(
@@ -410,10 +558,25 @@ function set_month_calendar(data) {
   const hijri_month_2nd = data[$days - 1].date.hijri.month.en;
   const hijri_year_1st = data[0].date.hijri.year;
   const hijri_year_2nd = data[$days - 1].date.hijri.year;
-  document.getElementById("t_hijri_1st").textContent =
-    hijri_month_1st + " " + hijri_year_1st;
-  document.getElementById("t_hijri_2nd").textContent =
-    hijri_month_2nd + " " + hijri_year_2nd;
+
+  const t_hijri_1st_month = document.querySelector(".t_hijri_1st > .month");
+  const t_hijri_2nd_month = document.querySelector(".t_hijri_2nd > .month");
+  const t_hijri_1st_year = document.querySelector(".t_hijri_1st > .year");
+  const t_hijri_2nd_year = document.querySelector(".t_hijri_2nd > .year");
+
+  // save the month english txt
+  t_hijri_1st_month.dataset.en = hijri_month_1st;
+  t_hijri_2nd_month.dataset.en = hijri_month_2nd;
+
+  if (en) {
+    t_hijri_1st_month.textContent = hijri_month_1st;
+    t_hijri_2nd_month.textContent = hijri_month_2nd;
+  } else {
+    t_hijri_1st_month.textContent = en_ar.get(hijri_month_1st);
+    t_hijri_2nd_month.textContent = en_ar.get(hijri_month_2nd);
+  }
+  t_hijri_1st_year.textContent = hijri_year_1st;
+  t_hijri_2nd_year.textContent = hijri_year_2nd;
   // ====================================================
 
   // create table
@@ -423,22 +586,50 @@ function set_month_calendar(data) {
   table.innerHTML = ""; // clear the table
 
   const set_t_header = (gregorian, hijri) => {
-    tbody.innerHTML += `
-    <tr class="header">
-      <th scope="col" class="g-month">${gregorian}</th>
-      <th scope="col" class="h-month">${hijri}</th>
-      <th scope="col" class="prayer fajr">Fajr</th>
-      <th scope="col" class="prayer sunrise">Sunrise</th>
-      <th scope="col" class="prayer dhuhr">Dhuhr</th>
-      <th scope="col" class="prayer asr">Asr</th>
-      <th scope="col" class="prayer maghrib">Maghrib</th>
-      <th scope="col" class="prayer isha">Isha</th>
-    </tr>
-    `;
+    if (en) {
+      tbody.innerHTML += `
+      <tr class="header">
+        <th scope="col" class="g-month" data-en="${gregorian}">${gregorian}</th>
+        <th scope="col" class="h-month" data-en="${hijri}">${hijri}</th>
+        <th scope="col" class="prayer fajr"data-en="Fajr">Fajr</th>
+        <th scope="col" class="prayer sunrise" data-en="Sunrise">Sunrise</th>
+        <th scope="col" class="prayer dhuhr"data-en="Dhuhr">Dhuhr</th>
+        <th scope="col" class="prayer asr"data-en="Asr">Asr</th>
+        <th scope="col" class="prayer maghrib" data-en="Maghrib">Maghrib</th>
+        <th scope="col" class="prayer isha" data-en="Isha">Isha</th>
+      </tr>
+      `;
+    } else {
+      tbody.innerHTML += `
+      <tr class="header">
+        <th scope="col" class="g-month">${en_ar.get(gregorian)}</th>
+        <th scope="col" class="h-month">${en_ar.get(hijri)}</th>
+        <th scope="col" class="prayer fajr" data-en="Fajr">${en_ar.get(
+          "Fajr"
+        )}</th>
+        <th scope="col" class="prayer sunrise" data-en="Sunrise">${en_ar.get(
+          "Sunrise"
+        )}</th>
+        <th scope="col" class="prayer dhuhr" data-en="Dhuhr">${en_ar.get(
+          "Dhuhr"
+        )}</th>
+        <th scope="col" class="prayer asr" data-en="Asr">${en_ar.get(
+          "Asr"
+        )}</th>
+        <th scope="col" class="prayer maghrib" data-en="Maghrib">${en_ar.get(
+          "Maghrib"
+        )}</th>
+        <th scope="col" class="prayer isha" data-en="Isha">${en_ar.get(
+          "Isha"
+        )}</th>
+      </tr>
+      `;
+    }
   };
 
   const gregorian_month = data[0].date.gregorian.month;
   const gregorian_year = +data[0].date.gregorian.year;
+
   // add the first header
   set_t_header(gregorian_month.en, hijri_month_1st);
 
@@ -454,11 +645,19 @@ function set_month_calendar(data) {
     if (curr_hijri_month !== next_hijri_month) {
       set_t_header(gregorian_month.en, hijri_month_2nd);
     }
-    const weekday = gregorian.weekday.en.slice(0, 3).toLowerCase();
+
+    let weekday = gregorian.weekday.en;
+
+    if (en) {
+      weekday = weekday.slice(0, 3).toLowerCase();
+    } else {
+      weekday = en_ar.get(weekday);
+    }
+
     const g_day = +gregorian.day;
     tbody.innerHTML += `
         <tr class="data" data-day="${g_day}">
-          <th scope="row">${g_day} ${weekday}</th>
+          <th scope="row"><span>${g_day}</span> <span data-en="${weekday}">${weekday}</span></th>
           <th scope="row">${+hijri.day}</th>
           <td>${get_time_only(timings.Fajr)}</td>
           <td>${get_time_only(timings.Sunrise)}</td>
@@ -530,5 +729,18 @@ document.getElementById("t_sel_year").addEventListener("input", (e) => {
   const year = +e.target.value;
   // console.log("Year:", year);
   update_month_calendar(0, year);
+});
+
+// settings switches
+settings_switches.forEach((action_fun, switch_id) => {
+  const _switch = document.getElementById(switch_id);
+
+  _switch.addEventListener("click", action_fun);
+
+  _switch.addEventListener("keydown", (e) => {
+    if (e.code === "Enter" || e.code === "Space") {
+      action_fun();
+    }
+  });
 });
 //========================== Events End ==========================

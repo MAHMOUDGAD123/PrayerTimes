@@ -37,15 +37,9 @@
 
 html {
   scroll-behavior: smooth;
-  font-family: var(--en_font), monospace;
   color: #fff;
   container: html / inline-size;
   white-space: nowrap;
-
-  &.ar {
-    font-family: var(--ar_font), monospace;
-    line-height: 1;
-  }
 }
 
 *,
@@ -74,14 +68,55 @@ img {
 body {
   height: 100dvh;
   background-color: #000;
+  font-family: var(--en_font), monospace;
   gap: 20px;
   padding: var(--padding) 20px;
   display: flex;
   flex-direction: column;
   container: body / inline-size;
-}
 
+  &.ar {
+    direction: rtl;
+    font-family: var(--ar_font), monospace;
+  }
+}
 /* Global rules End */
+
+.switch {
+  --w: 35px;
+  width: var(--w);
+  aspect-ratio: 1 / 0.5;
+  background-color: transparent;
+  border: 3px solid var(--green1);
+  border-radius: 100px;
+  position: relative;
+  transition-property: background-color;
+  transition-duration: var(--transition);
+  cursor: pointer;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -120% -50%;
+    width: calc(var(--w) * 0.3);
+    aspect-ratio: 1;
+    border-radius: 100%;
+    background-color: var(--green1);
+    transition-property: translate, background-color;
+    transition-duration: inherit;
+  }
+
+  &.on {
+    background-color: var(--green1);
+
+    &::before {
+      translate: 20% -50%;
+      background-color: var(--orange1);
+    }
+  }
+}
 
 header {
   display: flex;
@@ -101,24 +136,26 @@ header {
     }
 
     & > .txt {
+      display: flex;
+      gap: 2px;
       font-size: 1.7rem;
       word-spacing: -5px;
 
-      &.en {
-        & > span:first-of-type {
-          color: var(--orange1);
-        }
-        & > span:last-of-type {
-          color: var(--green1);
-        }
+      & > span:first-child {
+        color: var(--orange1);
+      }
+      & > span:last-child {
+        color: var(--green1);
       }
 
       &.ar {
-        font-family: "ar_font";
-        & > span:first-of-type {
+        flex-direction: row-reverse;
+        padding-top: 7px;
+
+        & > span:first-child {
           color: var(--green1);
         }
-        & > span:last-of-type {
+        & > span:last-child {
           color: var(--orange1);
         }
       }
@@ -134,7 +171,6 @@ main {
   overflow: hidden;
   background-color: var(--orange1);
   position: relative;
-  /* direction: rtl; */
 
   & > .content {
     flex: 1;
@@ -166,27 +202,21 @@ main {
       display: flex;
       align-items: center;
       gap: 7px;
+      font-family: var(--en_font);
     }
 
     /* prayer times page start */
     & > #prayerTimesPage {
-      display: flex;
+      /* display: flex; */
       flex-direction: column;
       gap: 5px;
-      display: none;
       position: relative;
+      display: none;
 
       & > i.bad-net {
         top: 0px;
         left: 0px;
         translate: -50% -50%;
-      }
-
-      & > .location {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--white-col);
       }
 
       & > .date {
@@ -209,13 +239,17 @@ main {
           gap: 10px;
 
           & > i {
-            font-size: calc(1.5rem + 1vw);
+            font-size: calc(1.2rem + 1vw);
           }
         }
 
         & > .d-m-y {
           gap: 20px;
           color: var(--white-col);
+
+          & > :is(.day, .year) {
+            font-family: var(--en_font);
+          }
 
           & > * {
             display: flex;
@@ -232,6 +266,14 @@ main {
         .date > .d-m-y {
           font-size: 1.3rem;
         }
+      }
+
+      & > .location {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--white-col);
+        font-family: var(--en_font);
       }
 
       & > .clock > .time {
@@ -295,7 +337,7 @@ main {
         @container html (inline-size < 870px) {
           .next-prayer {
             & > .prayer-name {
-              font-size: calc(1.4rem + 2vw);
+              font-size: calc(1rem + 1vw);
             }
 
             & > .txt {
@@ -303,7 +345,7 @@ main {
             }
 
             & > .clock.counter-down {
-              font-size: 1.25rem;
+              font-size: 1.2rem;
 
               & > * {
                 width: 20px;
@@ -340,8 +382,12 @@ main {
               gap: 10px;
 
               & > i {
-                padding-top: 0.25rem;
+                padding-top: 0.2rem;
               }
+            }
+
+            & > .time {
+              font-family: var(--en_font);
             }
           }
           @container html (inline-size < 870px) {
@@ -395,7 +441,7 @@ main {
     & > #monthCalendarPage {
       padding: var(--padding);
       border-radius: var(--border-rad);
-      display: flex;
+      /* display: flex; */
       flex-direction: column;
       gap: 10px;
       position: absolute;
@@ -492,10 +538,8 @@ main {
             outline: 2px solid var(--white-col);
           }
 
-          & > option[value] {
-            &:hover {
-              background-color: var(--orange1);
-            }
+          & > option[value]:hover {
+            background-color: var(--orange1);
           }
         }
       }
@@ -531,6 +575,10 @@ main {
               background-color: var(--green2);
               position: sticky;
               top: 0;
+
+              & > .prayer {
+                background-color: var(--green1);
+              }
             }
 
             & > * > th[scope="row"] {
@@ -545,6 +593,34 @@ main {
               background-color: var(--green4);
             }
           }
+        }
+      }
+    }
+
+    & > #settingsPage {
+      border-radius: var(--border-rad);
+      background-color: var(--green3);
+      padding: 20px;
+      /* display: flex; */
+      justify-content: center;
+      align-items: flex-start;
+      display: none;
+
+      & > * {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        direction: ltr;
+
+        & > i {
+          font-size: 1.5rem;
+          color: var(--green1);
+          cursor: pointer;
+          transition: all var(--transition);
+        }
+
+        & > span {
+          color: var(--white-col);
         }
       }
     }
@@ -652,6 +728,10 @@ footer {
 
 /* for mobile */
 @media (height <= 710px) {
+  body {
+    gap: 10px;
+  }
+
   main {
     &
       > .content
@@ -689,6 +769,27 @@ footer {
 
       & > .txt {
         font-size: 1.3rem;
+      }
+    }
+  }
+}
+
+@media (height <= 650px) {
+  body {
+    gap: 5px;
+  }
+
+  header {
+    gap: 7px;
+    font-size: 1rem;
+
+    & > .logo {
+      & > img {
+        width: 50px;
+      }
+
+      & > .txt {
+        font-size: 1rem;
       }
     }
   }
