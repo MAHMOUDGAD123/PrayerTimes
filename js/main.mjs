@@ -80,6 +80,8 @@ const en_ar = new Map([
   ["Today", "اليوم"],
   ["Prayer", "الصلاة"],
   ["Remaining Time", "الوقت المتبقي"],
+  ["MG", "إم جي"],
+  ["Designed-by", "تصميم"],
 ]);
 
 // page_btn_id => page_id
