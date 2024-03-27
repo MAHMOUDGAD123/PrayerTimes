@@ -214,9 +214,8 @@ main {
       display: none;
 
       & > i.bad-net {
-        top: 0px;
-        left: 0px;
-        translate: -50% -50%;
+        top: 0;
+        left: 0;
       }
 
       & > .date {
@@ -728,10 +727,6 @@ footer {
 
 /* for mobile */
 @media (height <= 710px) {
-  body {
-    gap: 10px;
-  }
-
   main {
     &
       > .content
@@ -781,15 +776,14 @@ footer {
 
   header {
     gap: 7px;
-    font-size: 1rem;
 
     & > .logo {
       & > img {
-        width: 50px;
+        width: 55px;
       }
 
       & > .txt {
-        font-size: 1rem;
+        font-size: 1.2rem;
       }
     }
   }
