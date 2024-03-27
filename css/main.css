@@ -337,7 +337,7 @@ main {
         @container html (inline-size < 870px) {
           .next-prayer {
             & > .prayer-name {
-              font-size: calc(1rem + 1vw);
+              font-size: calc(1.5rem + 2vw);
             }
 
             & > .txt {
