@@ -203,7 +203,6 @@ body {
       & .clock {
         display: flex;
         align-items: center;
-        gap: 7px;
         font-family: var(--en_font);
       }
 
@@ -269,21 +268,41 @@ body {
           }
         }
 
-        & > .location {
+        & > .location_temp {
           display: flex;
           align-items: center;
           gap: 10px;
           color: var(--white-col);
           font-family: var(--en_font);
+
+          & > .temperature {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            color: var(--white-col);
+
+            & > .degree {
+              display: flex;
+              gap: 2px;
+
+              &::after {
+                content: "\00B0""C";
+              }
+            }
+          }
         }
 
-        & > .clock > .time {
-          display: flex;
-          direction: ltr;
+        & > .clock {
+          gap: 10px;
           color: var(--white-col);
 
-          & > * {
-            width: 18px;
+          & > .time {
+            display: flex;
+            direction: ltr;
+
+            & > * {
+              width: 18px;
+            }
           }
         }
 
@@ -323,7 +342,6 @@ body {
 
             & > .clock.counter-down {
               font-size: 2.5rem;
-              gap: 0;
               direction: ltr;
 
               &.blink {
@@ -710,6 +728,7 @@ body {
   }
 }
 
+/* for palastine mode */
 @layer high {
   header {
   }

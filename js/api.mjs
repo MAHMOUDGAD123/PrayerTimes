@@ -12,7 +12,88 @@ const get_location = async (lat, lng) => {
   return address;
 };
 
+const get_weather = async (lat, lng) => {
+  const key = "41bb92fdfcad4560af6161056242803";
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m`;
+  const req = new Request(url, { method: "GET" });
+  const res = await fetch(req);
+  if (!res.ok) {
+    console.log("Fetch Weather ❌");
+    return null;
+  }
+  console.log("Fetch Weather ✅");
+  const address = await res.json();
+  return address;
+};
+
+// athan - location - weather
 export const api = (time_only = false, month = 0, year = 0) => {
+  return new Promise((resolve) => {
+    const success = async (pos) => {
+      const date = new Date();
+      if (!month) {
+        month = date.getMonth() + 1;
+      }
+      if (!year) {
+        year = date.getFullYear();
+      }
+      const crd = pos.coords;
+      const lat = crd.latitude;
+      const lng = crd.longitude;
+
+      console.log("Coordinates ✅", "\nlat:", lat, "\nlng:", lng);
+
+      const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=5`;
+
+      let data = null;
+      let location = null;
+      let weather = null;
+      let temperature = 0;
+      let address = null;
+
+      const req = new Request(url, { method: "GET" });
+      const response = await fetch(req);
+
+      // don't fetch for location or weather if only_time
+      if (!time_only) {
+        location = await get_location(lat, lng);
+        weather = await get_weather(lat, lng);
+
+        if (location) {
+          address = location.address;
+        }
+        if (weather) {
+          temperature = Math.round(+weather.current.temperature_2m);
+        }
+      }
+
+      if (response.ok) {
+        console.log("Fetch Athan ✅");
+        data = (await response.json()).data;
+      } else {
+        console.log("Fetch Athan ❌");
+      }
+
+      resolve({ data, address, temperature });
+    };
+
+    const error = (err) => {
+      console.log("Coordinates ❌");
+      resolve({ data: null, address: null });
+    };
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
+    };
+
+    navigator.geolocation.getCurrentPosition(success, error, options);
+  });
+};
+
+// athan - location
+const _api = (time_only = false, month = 0, year = 0) => {
   return new Promise((resolve) => {
     const success = async (pos) => {
       const date = new Date();
@@ -37,9 +118,11 @@ export const api = (time_only = false, month = 0, year = 0) => {
       const req = new Request(url, { method: "GET" });
       const response = await fetch(req);
 
-      // don't fetch for location if only_time
+      // don't fetch for location or weather if only_time
       if (!time_only) {
         location = await get_location(lat, lng);
+        weather = await get_weather(lat, lng);
+
         if (location) {
           address = location.address;
         }
