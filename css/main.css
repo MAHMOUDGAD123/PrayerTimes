@@ -401,10 +401,6 @@ body {
                 display: flex;
                 align-items: center;
                 gap: 10px;
-
-                & > i {
-                  padding-top: 0.2rem;
-                }
               }
 
               & > .time {
@@ -726,6 +722,18 @@ body {
         gap: 20px;
       }
     }
+
+    main
+      > .content
+      > #prayerTimesPage
+      > .times
+      > .prayers
+      > .prayer
+      > .icon-name
+      > i {
+      position: relative;
+      top: 3px;
+    }
   }
 }
 
@@ -806,6 +814,10 @@ body {
 
 @media (height <= 650px) {
   body {
+    gap: 5px;
+  }
+
+  main > .content > #prayerTimesPage > .times > .prayers {
     gap: 5px;
   }
 
