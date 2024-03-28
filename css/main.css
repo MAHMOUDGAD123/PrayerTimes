@@ -283,7 +283,8 @@ body {
 
             & > .degree {
               display: flex;
-              gap: 2px;
+              gap: 1px;
+              direction: ltr;
 
               &::after {
                 content: "\00B0""C";
