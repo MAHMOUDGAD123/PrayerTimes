@@ -75,6 +75,18 @@ const en_ar = new Map([
   ["English", "إنجليزي"],
   ["Arabic", "عربي"],
 
+  // numbers
+  ["0", "٠"],
+  ["1", "١"],
+  ["2", "٢"],
+  ["3", "٣"],
+  ["4", "٤"],
+  ["5", "٥"],
+  ["6", "٦"],
+  ["7", "٧"],
+  ["8", "٨"],
+  ["9", "٩"],
+
   // others
   ["Times", "أوقات"],
   ["Today", "اليوم"],
@@ -217,7 +229,7 @@ const bad_internet = () => {
 };
 //===================== Data & tools End ======================
 
-//===================== initialization & testing Start ======================
+//===================== initialization Start ======================
 // set the initial page
 curr_page = document.getElementById("prayerTimesPage");
 curr_page.style.display = "flex";
