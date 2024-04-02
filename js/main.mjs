@@ -625,8 +625,12 @@ function set_month_calendar(data) {
     } else {
       tbody.innerHTML += `
       <tr class="header">
-        <th scope="col" class="g-month">${en_ar.get(gregorian)}</th>
-        <th scope="col" class="h-month">${en_ar.get(hijri)}</th>
+        <th scope="col" class="g-month" data-en="${gregorian}">${en_ar.get(
+        gregorian
+      )}</th>
+        <th scope="col" class="h-month" data-en="${hijri}">${en_ar.get(
+        hijri
+      )}</th>
         <th scope="col" class="prayer fajr" data-en="Fajr">${en_ar.get(
           "Fajr"
         )}</th>
@@ -669,26 +673,24 @@ function set_month_calendar(data) {
       set_t_header(gregorian_month.en, hijri_month_2nd);
     }
 
-    let weekday = gregorian.weekday.en;
-
-    if (en) {
-      weekday = weekday.slice(0, 3).toLowerCase();
-    } else {
-      weekday = en_ar.get(weekday);
-    }
-
+    let en_weekday = gregorian.weekday.en.slice(0, 3).toLowerCase();
+    const ar_weekday = en_ar.get(en_weekday);
     const g_day = +gregorian.day;
+
     tbody.innerHTML += `
-        <tr class="data" data-day="${g_day}">
-          <th scope="row"><span>${g_day}</span> <span data-en="${weekday}">${weekday}</span></th>
-          <th scope="row">${+hijri.day}</th>
-          <td>${get_time_only(timings.Fajr)}</td>
-          <td>${get_time_only(timings.Sunrise)}</td>
-          <td>${get_time_only(timings.Dhuhr)}</td>
-          <td>${get_time_only(timings.Asr)}</td>
-          <td>${get_time_only(timings.Maghrib)}</td>
-          <td>${get_time_only(timings.Isha)}</td>
-        </tr>`;
+      <tr class="data" data-day="${g_day}">
+      <th scope="row"><span>${g_day}</span> <span data-en="${en_weekday}">${
+      en ? en_weekday : ar_weekday
+    }</span></th>
+      <th scope="row">${+hijri.day}</th>
+      <td>${get_time_only(timings.Fajr)}</td>
+      <td>${get_time_only(timings.Sunrise)}</td>
+      <td>${get_time_only(timings.Dhuhr)}</td>
+      <td>${get_time_only(timings.Asr)}</td>
+      <td>${get_time_only(timings.Maghrib)}</td>
+      <td>${get_time_only(timings.Isha)}</td>
+      </tr>`;
+
     // make the next is the current
     curr_hijri_month = next_hijri_month;
   });
