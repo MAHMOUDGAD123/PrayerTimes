@@ -439,6 +439,7 @@ function set_counter_down(key) {
 
       counter_down.classList.add("blink");
 
+      // play athan on prayers only
       if (is_prayer()) {
         const athan = document.getElementById("athan");
         athan_time_out = Math.ceil(athan.duration * 1000);
