@@ -1,8 +1,8 @@
 {
   "name": "PrayerTimes",
   "short_name": "PrayerTimes",
-  "display": "standalone",
-  "background_color": "#076e0050",
+  "display": "fullscreen",
+  "background_color": "#076e0030",
   "icons": [
     {
       "src": "/files/imgs/logo-192.png",
