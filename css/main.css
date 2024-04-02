@@ -1,5 +1,4 @@
 /* Global rules Start */
-@layer low, high;
 
 /* en */
 @font-face {
@@ -123,7 +122,6 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   position: relative;
   font-size: 2rem;
 
@@ -131,9 +129,10 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 10px;
 
     & > img {
-      width: 90px;
+      width: 60px;
     }
 
     & > .txt {
@@ -721,18 +720,18 @@ main {
       flex-direction: row;
       gap: 20px;
     }
-  }
 
-  main
-    > .content
-    > #prayerTimesPage
-    > .times
-    > .prayers
-    > .prayer
-    > .icon-name
-    > i {
-    position: relative;
-    top: 3px;
+    &
+      > .content
+      > #prayerTimesPage
+      > .times
+      > .prayers
+      > .prayer
+      > .icon-name
+      > i {
+      position: relative;
+      top: 3px;
+    }
   }
 }
 
@@ -759,7 +758,37 @@ main {
 }
 
 /* @media for mobile */
+@media (height <= 770px) {
+  header {
+    & > .logo {
+      gap: 8px;
+
+      & > img {
+        width: 50px;
+      }
+
+      & > .txt {
+        font-size: 1.4rem;
+      }
+    }
+  }
+}
+
 @media (height <= 710px) {
+  header {
+    & > .logo {
+      gap: 6px;
+
+      & > img {
+        width: 40px;
+      }
+
+      & > .txt {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
   main {
     &
       > .content
@@ -785,43 +814,28 @@ main {
       }
     }
   }
-
-  header {
-    gap: 7px;
-    font-size: 1.3rem;
-
-    & > .logo {
-      & > img {
-        width: 60px;
-      }
-
-      & > .txt {
-        font-size: 1.3rem;
-      }
-    }
-  }
 }
 
 @media (height <= 650px) {
+  header {
+    & > .logo {
+      gap: 4px;
+
+      & > img {
+        width: 30px;
+      }
+
+      & > .txt {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
   body {
     gap: 5px;
   }
 
   main > .content > #prayerTimesPage > .times > .prayers {
     gap: 5px;
-  }
-
-  header {
-    gap: 7px;
-
-    & > .logo {
-      & > img {
-        width: 55px;
-      }
-
-      & > .txt {
-        font-size: 1.2rem;
-      }
-    }
   }
 }
