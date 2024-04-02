@@ -11,5 +11,6 @@
       "sizes": "196x196"
     },
     { "src": "/files/imgs/logo.png", "type": "image/png", "sizes": "512x512" }
-  ]
+  ],
+ "display": "standalone",
 }
