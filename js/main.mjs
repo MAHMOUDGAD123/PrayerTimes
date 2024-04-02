@@ -104,7 +104,7 @@ const page_btn = new Map([
 ]);
 
 // settings_switch_id => action_function
-const settings_switches = new Map([["langSwitch", change_lang]]);
+const settings_switches = new Map([["langSwitch", set_lang]]);
 
 const months = [
   "January",
@@ -236,6 +236,7 @@ curr_page.style.display = "flex";
 document.getElementById(page_btn.get(curr_page.id)).classList.add("picked");
 // set month calendar page selections
 set_month_year_selections();
+set_lang();
 
 // data init
 if (run) {
@@ -277,7 +278,7 @@ if (run) {
 
 //========================= Functions Start =========================
 
-function change_lang() {
+function set_lang() {
   const all_txt = document.querySelectorAll("[data-en]");
   const logo = document.querySelector(".logo > .txt");
   const _switch = document.getElementById("langSwitch");
