@@ -748,13 +748,15 @@ page_btn.forEach((btn_id, page_id, map) => {
 // table selections
 document.getElementById("t_sel_month").addEventListener("input", (e) => {
   const month = +e.target.value;
+  const year = +document.getElementById("t_sel_year").value;
   // console.log("Month:", month);
-  update_month_calendar(month, 0);
+  update_month_calendar(month, year);
 });
 document.getElementById("t_sel_year").addEventListener("input", (e) => {
+  const month = +document.getElementById("t_sel_month").value;
   const year = +e.target.value;
   // console.log("Year:", year);
-  update_month_calendar(0, year);
+  update_month_calendar(month, year);
 });
 
 // settings switches
