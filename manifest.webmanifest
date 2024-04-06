@@ -5,12 +5,12 @@
   "background_color": "#076e0030",
   "icons": [
     {
-      "src": "/files/imgs/prayerTimes.png",
+      "src": "/files/imgs/prayerTimes-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/files/imgs/prayerTimes.png",
+      "src": "/files/imgs/prayerTimes-196.png",
       "type": "image/png",
       "sizes": "196x196"
     },
