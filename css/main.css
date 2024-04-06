@@ -460,6 +460,19 @@ main {
           }
         }
       }
+      @container html (inline-size < 295px) {
+        .times {
+          gap: 5px;
+
+          & > .prayers > .prayer {
+            gap: 7px;
+
+            & > .icon-name {
+              gap: 7px;
+            }
+          }
+        }
+      }
       /* prayer times page end */
     }
 
