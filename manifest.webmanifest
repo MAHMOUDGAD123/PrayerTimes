@@ -1,19 +1,23 @@
 {
-  "name": "PrayerTimes",
-  "short_name": "PrayerTimes",
+  "name": "",
+  "short_name": "",
   "display": "standalone",
   "background_color": "#076e0030",
   "icons": [
     {
-      "src": "/files/imgs/logo-192.png",
+      "src": "/files/imgs/Prayer_times_logo.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/files/imgs/logo-196.png",
+      "src": "/files/imgs/Prayer_times_logo.png",
       "type": "image/png",
       "sizes": "196x196"
     },
-    { "src": "/files/imgs/logo.png", "type": "image/png", "sizes": "512x512" }
+    {
+      "src": "/files/imgs/Prayer_times_logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
   ]
 }
