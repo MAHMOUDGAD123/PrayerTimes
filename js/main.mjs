@@ -29,7 +29,7 @@ const en_ar = new Map([
 
   // gregorian months
   ["January", "يناير"],
-  ["February", "فيراير"],
+  ["February", "فبراير"],
   ["March", "مارس"],
   ["April", "إبريل"],
   ["May", "مايو"],
