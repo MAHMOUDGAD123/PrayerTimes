@@ -571,6 +571,7 @@ main {
           color: var(--white-col);
           width: 105px;
           font-size: calc(0.7rem + 0.5vw);
+          font-family: inherit;
 
           &:focus-visible {
             outline: 2px solid var(--white-col);
