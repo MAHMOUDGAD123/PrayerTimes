@@ -589,6 +589,7 @@ main {
         font-weight: bold;
         border-radius: 10px;
         overflow-y: scroll;
+        overscroll-behavior-block: contain;
 
         & > table {
           width: 100%;
