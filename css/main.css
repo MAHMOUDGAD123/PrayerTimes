@@ -42,6 +42,7 @@
   --en_font: "en_font";
   --ar_font: "ar_font";
   --transition: 500ms;
+  --holiday-position: -149.55% -50%;
 }
 
 html {
@@ -87,6 +88,7 @@ body {
   &.ar {
     direction: rtl;
     font-family: var(--ar_font), monospace;
+    --holiday-position: 49.55% -50%;
   }
 }
 
@@ -571,7 +573,6 @@ main {
           color: var(--white-col);
           width: 105px;
           font-size: calc(0.7rem + 0.5vw);
-          font-family: inherit;
 
           &:focus-visible {
             outline: 2px solid var(--white-col);
@@ -598,10 +599,29 @@ main {
           }
 
           & > tbody {
-            font-size: calc(0.35rem + 1.5vw);
+            font-size: calc(0.35rem + 1.5dvw);
 
-            & > tr > td {
-              background-color: var(--orange2);
+            & > tr {
+              position: relative;
+
+              & > .holiday {
+                position: absolute;
+                background-color: var(--orange1);
+                color: var(--green1);
+                width: 100%;
+                height: 100%;
+                top: 50%;
+                left: 50%;
+                translate: var(--holiday-position);
+                transition: translate 1s;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              }
+
+              & > td {
+                background-color: var(--orange2);
+              }
             }
 
             & > tr.today > :is(th, td) {
@@ -613,6 +633,7 @@ main {
               background-color: var(--green2);
               position: sticky;
               top: 0;
+              z-index: 1;
 
               & > .prayer {
                 background-color: var(--green1);
@@ -627,8 +648,17 @@ main {
               color: var(--white-col);
             }
 
-            & > tr.data:hover {
-              background-color: var(--green4);
+            & > tr.data {
+              outline: none;
+              border: none;
+
+              &:focus > .holiday {
+                translate: -50% -50%;
+              }
+
+              &:hover {
+                background-color: var(--green4);
+              }
             }
           }
         }

@@ -26,7 +26,6 @@ const en_ar = new Map([
   ["wed", "الأربعاء"],
   ["thu", "الخميس"],
   ["fri", "الجمعة"],
-
   // gregorian months
   ["January", "يناير"],
   ["February", "فبراير"],
@@ -40,7 +39,6 @@ const en_ar = new Map([
   ["October", "أكتوبر"],
   ["November", "نوفمبر"],
   ["December", "ديسمبر"],
-
   // hijri months
   ["Muḥarram", "محرم"],
   ["Ṣafar", "سفر"],
@@ -54,12 +52,10 @@ const en_ar = new Map([
   ["Shawwāl", "شوال"],
   ["Dhū al-Qaʿdah", "ذو القعدة"],
   ["Dhū al-Ḥijjah", "ذو الحجة"],
-
   // nav
   ["Prayers", "الصلوات"],
-  ["Calendar", "التاريخ"],
+  ["Calendar", "التقويم"],
   ["Settings", "الإعدادات"],
-
   // prayers
   ["Fajr", "الفجر"],
   ["Sunrise", "الشروق"],
@@ -68,13 +64,11 @@ const en_ar = new Map([
   ["Maghrib", "المغرب"],
   ["Isha", "العشاء"],
   ["Midnight", "منتصف الليل"],
-
   // settings
   ["Language", "اللغة"],
   ["Theme", "السمة"],
   ["English", "إنجليزي"],
   ["Arabic", "عربي"],
-
   // numbers
   ["0", "٠"],
   ["1", "١"],
@@ -86,7 +80,6 @@ const en_ar = new Map([
   ["7", "٧"],
   ["8", "٨"],
   ["9", "٩"],
-
   // others
   ["Times", "أوقات"],
   ["Today", "اليوم"],
@@ -94,6 +87,21 @@ const en_ar = new Map([
   ["Remaining Time", "الوقت المتبقي"],
   ["MG", "إم جي"],
   ["Designed-by", "تصميم"],
+  // holidays
+  ["Lailat-ul-Miraj", "ليلة الإسراء والمعراج"],
+  ["Lailat-ul-Bara'at", "ليلة النصف من شعان"],
+  ["1st Day of Ramadan", "أول أيام شهر رمضان الكريم"],
+  ["Eid-ul-Fitr", "عيد الفطر"],
+  ["Lailat-ul-Qadr", "ليلة القدر"],
+  ["Hajj", "الحج"],
+  ["At-Tarwiyah", "يوم التروية"],
+  ["Yawm-Arafah", "يوم عرفة"],
+  ["Eid-ul-Adha", "عيد الأضحي"],
+  ["1st Tashriq Days", "أول أيام التشريق"],
+  ["2nd Tashriq Days", "ثاني أيام التشريق"],
+  ["3rd Tashriq Days", "ثالث أيام التشريق"],
+  ["Ashura", "يوم عاشوراء"],
+  ["Mawlid al-Nabi", "مولد النبي (ص)"],
 ]);
 
 // page_btn_id => page_id
@@ -661,10 +669,11 @@ function set_month_calendar(data) {
   // add the first header
   set_t_header(gregorian_month.en, hijri_month_1st);
 
-  // store the first day hijgri month number
+  // store the first day hijri month number
   let curr_hijri_month = data[0].date.hijri.month.number;
 
-  data.forEach((day, i) => {
+  data.forEach((day) => {
+    // console.log("today:", day);
     const gregorian = day.date.gregorian;
     const hijri = day.date.hijri;
     const timings = day.timings;
@@ -677,21 +686,64 @@ function set_month_calendar(data) {
     let en_weekday = gregorian.weekday.en.slice(0, 3).toLowerCase();
     const ar_weekday = en_ar.get(en_weekday);
     const g_day = +gregorian.day;
+    const h_day = +hijri.day;
+    const hd = hijri.holidays;
+    // create a table row
+    const tr = document.createElement("tr");
+    tr.className = "data";
+    tr.dataset.day = g_day;
+    tr.tabIndex = 0;
 
-    tbody.innerHTML += `
-      <tr class="data" data-day="${g_day}">
-      <th scope="row"><span>${g_day}</span> <span data-en="${en_weekday}">${
-      en ? en_weekday : ar_weekday
-    }</span></th>
-      <th scope="row">${+hijri.day}</th>
+    tr.innerHTML = `
+      <th scope="row">
+        <span>${g_day}</span> 
+        <span data-en="${en_weekday}">${en ? en_weekday : ar_weekday}</span>
+      </th>
+      <th scope="row">${h_day}</th>
       <td>${get_time_only(timings.Fajr)}</td>
       <td>${get_time_only(timings.Sunrise)}</td>
       <td>${get_time_only(timings.Dhuhr)}</td>
       <td>${get_time_only(timings.Asr)}</td>
       <td>${get_time_only(timings.Maghrib)}</td>
       <td>${get_time_only(timings.Isha)}</td>
-      </tr>`;
+    `;
+    // set the holiday if exist
+    if (hd.length) {
+      const td = document.createElement("td");
+      td.colSpan = 0;
+      td.classList = "holiday";
+      let hd_name = "";
 
+      // some custom holidays for hajj
+      if (curr_hijri_month === 12) {
+        switch (h_day) {
+          case 8:
+            hd_name = "At-Tarwiyah";
+            break;
+          case 9:
+            hd_name = "Yawm-Arafah";
+            break;
+          case 10:
+            hd_name = "Eid-ul-Adha";
+            break;
+          case 11:
+            hd_name = "1st Tashriq Days";
+            break;
+          case 12:
+            hd_name = "2nd Tashriq Days";
+            break;
+          case 13:
+            hd_name = "3rd Tashriq Days";
+            break;
+        }
+      } else {
+        hd_name = hd[0];
+      }
+      td.dataset.en = hd_name;
+      td.textContent = en ? hd_name : en_ar.get(hd_name);
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
     // make the next is the current
     curr_hijri_month = next_hijri_month;
   });
