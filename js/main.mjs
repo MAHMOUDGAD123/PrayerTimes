@@ -710,7 +710,6 @@ function set_month_calendar(data) {
     // set the holiday if exist
     if (hd.length) {
       const td = document.createElement("td");
-      td.colSpan = 0;
       td.classList = "holiday";
       let hd_name = "";
 
