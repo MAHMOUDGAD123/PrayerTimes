@@ -13,7 +13,6 @@ const get_location = async (lat, lng) => {
 };
 
 const get_weather = async (lat, lng) => {
-  const key = "41bb92fdfcad4560af6161056242803";
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m`;
   const req = new Request(url, { method: "GET" });
   const res = await fetch(req);
