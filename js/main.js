@@ -242,41 +242,43 @@ set_month_year_selections();
 set_lang();
 
 // data init
-if (run) {
-  // get data from api
-  const { data, address, temperature } = await api();
+(async () => {
+  if (run) {
+    // get data from api
+    const { data, address, temperature } = await api();
 
-  // console.log("Data:", data);
-  // console.log("Address:", address);
+    // console.log("Data:", data);
+    // console.log("Address:", address);
 
-  // do nothing if null
-  if (data) {
-    // Prayer Times Page
-    const _today = data[new Date().getDate() - 1];
-    set_times_dates(_today);
-    const next_prayer_key = get_next_prayer_key();
-    set_next_prayer(next_prayer_key);
+    // do nothing if null
+    if (data) {
+      // Prayer Times Page
+      const _today = data[new Date().getDate() - 1];
+      set_times_dates(_today);
+      const next_prayer_key = get_next_prayer_key();
+      set_next_prayer(next_prayer_key);
 
-    if (address) {
-      // add the location
-      const address_ele = document.getElementById("city_country");
-      const city = address.city;
-      const city_state = city ? city : address.state;
-      address_ele.textContent = `${city_state} - ${address.country}`;
-      // Month Calendar Page
-      set_month_calendar(data);
+      if (address) {
+        // add the location
+        const address_ele = document.getElementById("city_country");
+        const city = address.city;
+        const city_state = city ? city : address.state;
+        address_ele.textContent = `${city_state} - ${address.country}`;
+        // Month Calendar Page
+        set_month_calendar(data);
+      }
+
+      if (temperature) {
+        const temp_ele = document.querySelector(
+          ".location_temp > .temperature > .degree"
+        );
+        temp_ele.textContent = `${temperature}`;
+      }
+    } else {
+      bad_internet();
     }
-
-    if (temperature) {
-      const temp_ele = document.querySelector(
-        ".location_temp > .temperature > .degree"
-      );
-      temp_ele.textContent = `${temperature}`;
-    }
-  } else {
-    bad_internet();
   }
-}
+})();
 //====================== initialization & testing End =======================
 
 //========================= Functions Start =========================

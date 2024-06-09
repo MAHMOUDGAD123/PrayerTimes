@@ -53,20 +53,20 @@ export const api = (time_only = false, month = 0, year = 0) => {
       const req = new Request(url, { method: "GET" });
       const response = await fetch(req);
 
-      // don't fetch for location or weather if only_time
-      if (!time_only) {
-        location = await get_location(lat, lng);
-        weather = await get_weather(lat, lng);
-
-        if (location) {
-          address = location.address;
-        }
-        if (weather) {
-          temperature = Math.round(+weather.current.temperature_2m);
-        }
-      }
-
       if (response.ok) {
+        // don't fetch for location or weather if only_time
+        if (!time_only) {
+          location = await get_location(lat, lng);
+          weather = await get_weather(lat, lng);
+
+          if (location) {
+            address = location.address;
+          }
+          if (weather) {
+            temperature = Math.round(+weather.current.temperature_2m);
+          }
+        }
+
         console.log("Fetch Athan ✅");
         data = (await response.json()).data;
       } else {
@@ -78,12 +78,12 @@ export const api = (time_only = false, month = 0, year = 0) => {
 
     const error = (err) => {
       console.log("Coordinates ❌");
-      resolve({ data: null, address: null });
+      resolve({ data: null, address: null, temperature: 0 });
     };
 
     const options = {
       enableHighAccuracy: true,
-      timeout: 5000,
+      timeout: 7000,
       maximumAge: 0,
     };
 
