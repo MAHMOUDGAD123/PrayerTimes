@@ -1,6 +1,5 @@
 //=================== Dependances Start ====================
-import { api } from "./api.mjs";
-import { frmt_time } from "./time.mjs";
+import { api } from "./api.js";
 //==================== Dependances End =====================
 
 //==================== Data & tools Start =====================
@@ -223,10 +222,6 @@ const end_of_day = () => {
   return curr_prayer_key >= prayers.size;
 };
 
-const is_prayer = () => {
-  return curr_prayer_key !== 2 && curr_prayer_key !== 7;
-};
-
 const bad_internet = () => {
   const bad_net_icon = curr_page.querySelector("i.bad-net");
   bad_net_icon.style.display = "block";
@@ -441,40 +436,19 @@ function set_counter_down(key) {
       m.textContent = "00";
       s.textContent = "00";
 
-      const counter_down = document.querySelector(
-        ".times > .next-prayer > .counter-down"
-      );
+      const counter_down = document.querySelector(".times > .next-prayer > .counter-down");
 
       counter_down.classList.add("blink");
 
-      // play athan on prayers only
-      if (is_prayer()) {
-        const athan = document.getElementById("athan");
-        athan_time_out = Math.ceil(athan.duration * 1000);
-        athan.play();
+      setTimeout(() => {
+        counter_down.classList.remove("blink");
 
-        setTimeout(() => {
-          counter_down.classList.remove("blink");
-          athan.pause();
-          athan.currentTime = 0;
-
-          if (end_of_day()) {
-            update_dates_times();
-          } else {
-            set_next_prayer(get_next_prayer_key(false));
-          }
-        }, athan_time_out);
-      } else {
-        setTimeout(() => {
-          counter_down.classList.remove("blink");
-
-          if (end_of_day()) {
-            update_dates_times();
-          } else {
-            set_next_prayer(get_next_prayer_key(false));
-          }
-        }, athan_time_out);
-      }
+        if (end_of_day()) {
+          update_dates_times();
+        } else {
+          set_next_prayer(get_next_prayer_key(false));
+        }
+      }, athan_time_out);
     }
   }, 1000);
 }
@@ -823,3 +797,25 @@ settings_switches.forEach((action_fun, switch_id) => {
   });
 });
 //========================== Events End ==========================
+
+/* Time Start */
+function frmt_time(n) {
+  if (!n) return "00";
+  return Math.floor(Math.log10(n)) ? n : "0" + n;
+};
+
+setInterval(() => {
+  const hours = document.querySelector(".clock > .time > .hr");
+  const minutes = document.querySelector(".clock > .time > .min");
+  const seconds = document.querySelector(".clock > .time > .sec");
+  
+  const D = new Date();
+  const hrs = frmt_time(D.getHours());
+  const mins = frmt_time(D.getMinutes());
+  const secs = frmt_time(D.getSeconds());
+
+  hours.textContent = hrs;
+  minutes.textContent = mins;
+  seconds.textContent = secs;
+}, 1000);
+/* Time End */
