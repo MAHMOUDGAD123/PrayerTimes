@@ -4,10 +4,10 @@ const get_location = async (lat, lng) => {
   const req = new Request(url, { method: "GET" });
   const res = await fetch(req);
   if (!res.ok) {
-    console.log("Fetch Location ❌");
+    // console.log("Fetch Location ❌");
     return null;
   }
-  console.log("Fetch Locaiton ✅");
+  // console.log("Fetch Locaiton ✅");
   const address = await res.json();
   return address;
 };
@@ -17,10 +17,10 @@ const get_weather = async (lat, lng) => {
   const req = new Request(url, { method: "GET" });
   const res = await fetch(req);
   if (!res.ok) {
-    console.log("Fetch Weather ❌");
+    // console.log("Fetch Weather ❌");
     return null;
   }
-  console.log("Fetch Weather ✅");
+  // console.log("Fetch Weather ✅");
   const address = await res.json();
   return address;
 };
@@ -40,7 +40,7 @@ export const api = (time_only = false, month = 0, year = 0) => {
       const lat = crd.latitude;
       const lng = crd.longitude;
 
-      console.log("Coordinates ✅", "\nlat:", lat, "\nlng:", lng);
+      // console.log("Coordinates ✅", "\nlat:", lat, "\nlng:", lng);
 
       const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=5`;
       let data = null;
@@ -71,17 +71,17 @@ export const api = (time_only = false, month = 0, year = 0) => {
           }
         }
 
-        console.log("Fetch Athan ✅");
+        // console.log("Fetch Athan ✅");
         data = (await res.json()).data;
       } else {
-        console.log("Fetch Athan ❌");
+        // console.log("Fetch Athan ❌");
       }
 
       resolve({ data, address, temperature });
     };
 
     const error = (err) => {
-      console.log("Coordinates ❌");
+      // console.log("Coordinates ❌");
       resolve({ data: null, address: null, temperature: 0 });
     };
 
