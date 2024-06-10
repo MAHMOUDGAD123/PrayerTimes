@@ -43,17 +43,21 @@ export const api = (time_only = false, month = 0, year = 0) => {
       console.log("Coordinates ✅", "\nlat:", lat, "\nlng:", lng);
 
       const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=5`;
-
       let data = null;
       let location = null;
       let weather = null;
       let temperature = 0;
       let address = null;
-
+      let res = null;
       const req = new Request(url, { method: "GET" });
-      const response = await fetch(req);
+      let Trials = 3;
+      
+      do {
+        res = await fetch(req);
+        console.log('Fetch Trials [' + --Trials + ']');
+      } while (!res.ok && Trials);
 
-      if (response.ok) {
+      if (res.ok) {
         // don't fetch for location or weather if only_time
         if (!time_only) {
           location = await get_location(lat, lng);
@@ -68,7 +72,7 @@ export const api = (time_only = false, month = 0, year = 0) => {
         }
 
         console.log("Fetch Athan ✅");
-        data = (await response.json()).data;
+        data = (await res.json()).data;
       } else {
         console.log("Fetch Athan ❌");
       }
