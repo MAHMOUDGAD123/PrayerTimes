@@ -54,8 +54,8 @@ export const api = (time_only = false, month = 0, year = 0) => {
       
       do {
         res = await fetch(req);
-        console.log('Fetch Trials [' + --Trials + ']');
-      } while (!res.ok && Trials);
+        // console.log('Fetch Trials [' + (Trials - 1) + ']');
+      } while (!res.ok && --Trials);
 
       if (res.ok) {
         // don't fetch for location or weather if only_time
