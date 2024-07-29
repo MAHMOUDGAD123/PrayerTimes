@@ -6,7 +6,8 @@ import { api } from "./api.js";
 let run = true;
 let curr_prayer_key = 0;
 let curr_page = null;
-let en = true; // en: true | ar: false
+// en: true | ar: false
+let en = window.localStorage.getItem("lng") === "en" ? true : false;
 
 const en_ar = new Map([
   // weekdays
@@ -298,6 +299,7 @@ function set_lang() {
       const en_txt = ele.dataset.en;
       ele.textContent = en_ar.get(en_txt);
     });
+    window.localStorage.setItem('lng', 'en');
   } else {
     en = true;
     _switch.classList.remove("on");
@@ -308,6 +310,7 @@ function set_lang() {
       const en_txt = ele.dataset.en;
       ele.textContent = en_txt;
     });
+    window.localStorage.setItem('lng', 'ar');
   }
 }
 
