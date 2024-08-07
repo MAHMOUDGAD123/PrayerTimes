@@ -420,16 +420,16 @@ function set_counter_down(key) {
 
   let notification;
   document.addEventListener('visibilitychange', (e) => {
-    // Notification.requestPermission().then(permission => {
-      // if (permission === 'granted') {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
         if (document.visibilityState === 'hidden') {
           const notification_info = get_notification_info(key);
           notification = new Notification(notification_info.title);
         } else {
           notification.close();
         }
-      // } 
-    // });
+      } 
+    });
   });
 
   // count down interval
