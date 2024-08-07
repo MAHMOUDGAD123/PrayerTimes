@@ -273,6 +273,13 @@ set_lang();
         );
         temp_ele.textContent = `${temperature}`;
       }
+
+      // notification request
+      window.addEventListener('click', (e) => {
+        if (Notification.permission !== 'granted') {
+          Notification.requestPermission();
+        }
+      }, { once: true });
     } else {
       bad_internet();
     }
@@ -418,20 +425,6 @@ function set_counter_down(key) {
   const ms_min = 1000 * 60;
   const ms_sec = 1000;
 
-  let notification;
-  document.addEventListener('visibilitychange', (e) => {
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        if (document.visibilityState === 'hidden') {
-          const notification_info = get_notification_info(key);
-          notification = new Notification(notification_info.title);
-        } else {
-          notification.close();
-        }
-      } 
-    });
-  });
-
   // count down interval
   const intervId = setInterval(() => {
     const now = Date.now();
@@ -456,7 +449,10 @@ function set_counter_down(key) {
       const counter_down = document.querySelector(".times > .next-prayer > .counter-down");
       counter_down.classList.add("blink");
 
-      
+      // show athan notification
+      if (Notification.permission === 'granted') {
+        new Notification(get_notification_info(key).title);
+      }
 
       setTimeout(() => {
         counter_down.classList.remove("blink");
