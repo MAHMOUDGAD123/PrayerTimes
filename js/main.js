@@ -87,6 +87,7 @@ const en_ar = new Map([
   ["Remaining Time", "الوقت المتبقي"],
   ["MG", "إم جي"],
   ["Designed-by", "تصميم"],
+  ["Athan", "أذان"],
   // holidays
   ["Lailat-ul-Miraj", "ليلة الإسراء والمعراج"],
   ["Lailat-ul-Bara'at", "ليلة النصف من شعان"],
@@ -247,9 +248,6 @@ set_lang();
   if (run) {
     // get data from api
     const { data, address, temperature } = await api();
-
-    // console.log("Data:", data);
-    // console.log("Address:", address);
 
     // do nothing if null
     if (data) {
@@ -420,6 +418,20 @@ function set_counter_down(key) {
   const ms_min = 1000 * 60;
   const ms_sec = 1000;
 
+  let notification;
+  document.addEventListener('visibilitychange', (e) => {
+    // Notification.requestPermission().then(permission => {
+      // if (permission === 'granted') {
+        if (document.visibilityState === 'hidden') {
+          const notification_info = get_notification_info(key);
+          notification = new Notification(notification_info.title);
+        } else {
+          notification.close();
+        }
+      // } 
+    // });
+  });
+
   // count down interval
   const intervId = setInterval(() => {
     const now = Date.now();
@@ -442,8 +454,9 @@ function set_counter_down(key) {
       s.textContent = "00";
 
       const counter_down = document.querySelector(".times > .next-prayer > .counter-down");
-
       counter_down.classList.add("blink");
+
+      
 
       setTimeout(() => {
         counter_down.classList.remove("blink");
@@ -522,6 +535,14 @@ function set_next_prayer(key) {
 
   set_counter_down(key);
   curr_prayer_key = key;
+}
+
+function get_notification_info(key) {
+  const name = prayers.get(key).name;
+  const title = en ? name + ' Athan' : en_ar.get('Athan') + ' ' + en_ar.get(name);
+  return {
+    title,
+  };
 }
 
 //---------- Month Calendar Page ----------
