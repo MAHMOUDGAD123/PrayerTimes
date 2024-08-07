@@ -451,7 +451,7 @@ function set_counter_down(key) {
 
       // show athan notification
       if (Notification.permission === 'granted') {
-        new Notification(get_notification_info(key).title);
+        new Notification(get_prayer_name(key));
       }
 
       setTimeout(() => {
@@ -533,12 +533,9 @@ function set_next_prayer(key) {
   curr_prayer_key = key;
 }
 
-function get_notification_info(key) {
+function get_prayer_name(key) {
   const name = prayers.get(key).name;
-  const title = en ? name + ' Athan' : en_ar.get('Athan') + ' ' + en_ar.get(name);
-  return {
-    title,
-  };
+  return en ? name : en_ar.get(name);
 }
 
 //---------- Month Calendar Page ----------
