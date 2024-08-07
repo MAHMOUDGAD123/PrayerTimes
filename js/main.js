@@ -275,7 +275,7 @@ set_lang();
       }
 
       // notification request
-      window.addEventListener('click', (e) => {
+      document.addEventListener('click', (e) => {
         if (Notification.permission !== 'granted') {
           Notification.requestPermission();
         }
