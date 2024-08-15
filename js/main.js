@@ -41,7 +41,7 @@ const en_ar = new Map([
   ["December", "ديسمبر"],
   // hijri months
   ["Muḥarram", "محرم"],
-  ["Ṣafar", "سفر"],
+  ["Ṣafar", "صفر"],
   ["Rabīʿ al-awwal", "ربيع الأول"],
   ["Rabīʿ al-thānī", "ربيع الثاني"],
   ["Jumādá al-ūlá", "جماد الأول"],
@@ -248,7 +248,6 @@ set_lang();
   if (run) {
     // get data from api
     const { data, address, temperature } = await api();
-
     // do nothing if null
     if (data) {
       // Prayer Times Page
@@ -275,11 +274,15 @@ set_lang();
       }
 
       // notification request
-      document.addEventListener('click', (e) => {
-        if (Notification.permission !== 'granted') {
-          Notification.requestPermission();
-        }
-      }, { once: true });
+      document.addEventListener(
+        "click",
+        (e) => {
+          if (Notification.permission !== "granted") {
+            Notification.requestPermission();
+          }
+        },
+        { once: true }
+      );
     } else {
       bad_internet();
     }
@@ -304,7 +307,7 @@ function set_lang() {
       const en_txt = ele.dataset.en;
       ele.textContent = en_ar.get(en_txt);
     });
-    window.localStorage.setItem('lng', 'en');
+    window.localStorage.setItem("lng", "en");
   } else {
     en = true;
     _switch.classList.remove("on");
@@ -315,7 +318,7 @@ function set_lang() {
       const en_txt = ele.dataset.en;
       ele.textContent = en_txt;
     });
-    window.localStorage.setItem('lng', 'ar');
+    window.localStorage.setItem("lng", "ar");
   }
 }
 
@@ -446,17 +449,22 @@ function set_counter_down(key) {
       m.textContent = "00";
       s.textContent = "00";
 
-      const counter_down = document.querySelector(".times > .next-prayer > .counter-down");
+      const counter_down = document.querySelector(
+        ".times > .next-prayer > .counter-down"
+      );
       counter_down.classList.add("blink");
 
       // show athan notification
-      if (Notification.permission === 'granted') {
-        new Notification(get_prayer_name(key));
+      if (Notification.permission === "granted") {
+        try {
+          new Notification(get_prayer_name(key), {
+            icon: "../files/imgs/logo.png",
+          });
+        } catch (_) {}
       }
 
       setTimeout(() => {
         counter_down.classList.remove("blink");
-
         if (end_of_day()) {
           update_dates_times();
         } else {
@@ -821,13 +829,13 @@ settings_switches.forEach((action_fun, switch_id) => {
 function frmt_time(n) {
   if (!n) return "00";
   return Math.floor(Math.log10(n)) ? n : "0" + n;
-};
+}
 
 setInterval(() => {
   const hours = document.querySelector(".clock > .time > .hr");
   const minutes = document.querySelector(".clock > .time > .min");
   const seconds = document.querySelector(".clock > .time > .sec");
-  
+
   const D = new Date();
   const hrs = frmt_time(D.getHours());
   const mins = frmt_time(D.getMinutes());
