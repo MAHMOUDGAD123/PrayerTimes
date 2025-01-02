@@ -1,6 +1,6 @@
-//=================== Dependances Start ====================
+//=================== Dependences Start ====================
 import { api } from "./api.js";
-//==================== Dependances End =====================
+//==================== Dependences End =====================
 
 //==================== Data & tools Start =====================
 let run = true;
@@ -81,6 +81,7 @@ const en_ar = new Map([
   ["8", "٨"],
   ["9", "٩"],
   // others
+  ["Holiday", "المناسبة"],
   ["Times", "أوقات"],
   ["Today", "اليوم"],
   ["Prayer", "الصلاة"],
@@ -96,13 +97,30 @@ const en_ar = new Map([
   ["Lailat-ul-Qadr", "ليلة القدر"],
   ["Hajj", "الحج"],
   ["At-Tarwiyah", "يوم التروية"],
-  ["Yawm-Arafah", "يوم عرفة"],
+  ["Arafa", "يوم عرفة"],
   ["Eid-ul-Adha", "عيد الأضحي"],
   ["1st Tashriq Days", "أول أيام التشريق"],
   ["2nd Tashriq Days", "ثاني أيام التشريق"],
   ["3rd Tashriq Days", "ثالث أيام التشريق"],
   ["Ashura", "يوم عاشوراء"],
   ["Mawlid al-Nabi", "مولد النبي (ص)"],
+  ["Beginning of the holy months", "بداية الأشهر الحرم"],
+  ["Lailat-ul-Ragha'ib", "ليلة الرغائب"],
+  [
+    "Urs of Mawlana Shaykh Nazim al-Haqqani (ق)",
+    "عرس مولانا الشيخ ناظم الحقاني (ق)",
+  ],
+  [
+    "Birth of Sayyidina `Ali ibn Abi Talib (ر)",
+    "ميلاد سيدنا علي بن أبي طالب (ر)",
+  ],
+  ["Urs of Sayyidina Jafar as-Sadiq (ق)", "عرس سيدنا جعفر الصادق (ق)"],
+  ["Urs of Zaynab bint Ali (ر)", "عرس السيدة زينب بنت علي (ر)"],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
 ]);
 
 // page_btn_id => page_id
@@ -688,6 +706,7 @@ function set_month_calendar(data) {
     const ar_weekday = en_ar.get(en_weekday);
     const g_day = +gregorian.day;
     const h_day = +hijri.day;
+    /** @type {string[]} */
     const hd = hijri.holidays;
     // create a table row
     const tr = document.createElement("tr");
@@ -708,39 +727,74 @@ function set_month_calendar(data) {
       <td>${get_time_only(timings.Maghrib)}</td>
       <td>${get_time_only(timings.Isha)}</td>
     `;
+
     // set the holiday if exist
     if (hd.length) {
       const td = document.createElement("td");
-      td.classList = "holiday";
-      let hd_name = "";
+      const holidayTitle = document.createElement("div");
+      const holidayDate = document.createElement("div");
+      const frag = document.createDocumentFragment();
 
-      // some custom holidays for hajj
-      if (curr_hijri_month === 12) {
-        switch (h_day) {
-          case 8:
-            hd_name = "At-Tarwiyah";
-            break;
-          case 9:
-            hd_name = "Yawm-Arafah";
-            break;
-          case 10:
-            hd_name = "Eid-ul-Adha";
-            break;
-          case 11:
-            hd_name = "1st Tashriq Days";
-            break;
-          case 12:
-            hd_name = "2nd Tashriq Days";
-            break;
-          case 13:
-            hd_name = "3rd Tashriq Days";
-            break;
+      tr.classList.add("holiday");
+      td.className = "holiday-info";
+      holidayTitle.className = "holiday-title";
+      holidayTitle.dataset.en = "Holiday";
+      holidayTitle.textContent = en ? "Holiday" : en_ar.get("Holiday");
+      holidayDate.className = "holiday-date";
+
+      // add date to the holiday
+      [
+        [h_day, false],
+        [hijri_month_1st, true],
+        [hijri_year_1st, false],
+      ].forEach(([data, isText]) => {
+        const div = document.createElement("div");
+        if (isText) {
+          div.dataset.en = data;
+          div.textContent = en ? data : en_ar.get(data);
+        } else {
+          div.textContent = data;
         }
-      } else {
-        hd_name = hd[0];
-      }
-      td.dataset.en = hd_name;
-      td.textContent = en ? hd_name : en_ar.get(hd_name);
+        holidayDate.appendChild(div);
+      });
+
+      frag.appendChild(holidayTitle);
+      frag.appendChild(holidayDate);
+
+      hd.forEach((holidayName) => {
+        const div = document.createElement("div");
+        let hd_name = "";
+
+        // some custom holidays for hajj
+        if (curr_hijri_month === 12) {
+          switch (h_day) {
+            case 8:
+              hd_name = "At-Tarwiyah";
+              break;
+            case 9:
+            case 10:
+              hd_name = holidayName;
+              break;
+            case 11:
+              hd_name = "1st Tashriq Days";
+              break;
+            case 12:
+              hd_name = "2nd Tashriq Days";
+              break;
+            case 13:
+              hd_name = "3rd Tashriq Days";
+              break;
+          }
+        } else {
+          hd_name = holidayName;
+        }
+
+        div.dataset.en = hd_name;
+        div.textContent = en ? hd_name : en_ar.get(hd_name);
+        frag.appendChild(div);
+      });
+
+      td.appendChild(frag);
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -749,7 +803,7 @@ function set_month_calendar(data) {
   });
   // highlight this day
   if (this_month === gregorian_month.number && this_year === gregorian_year) {
-    tbody.querySelector(`tr[data-day='${this_day}']`).classList = "today";
+    tbody.querySelector(`tr[data-day='${this_day}']`).classList.add("today");
   }
   // append table body after complete
   table.appendChild(tbody);

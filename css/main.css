@@ -34,6 +34,8 @@
   --orange1: #faac0d;
   --orange2: #faab0d50;
   --orange3: #faab0dcb;
+  --orange4: #faab0de0;
+  --orange5: #faab0da0;
   --green1: #108207;
   --green2: #076800;
   --green3: #076e0050;
@@ -42,7 +44,6 @@
   --en_font: "en_font";
   --ar_font: "ar_font";
   --transition: 500ms;
-  --holiday-position: -149.55% -50%;
 }
 
 html {
@@ -91,7 +92,6 @@ body {
   &.ar {
     direction: rtl;
     font-family: var(--ar_font), monospace;
-    --holiday-position: 49.55% -50%;
   }
 }
 
@@ -596,10 +596,11 @@ main {
 
         & > table {
           width: 100%;
-          border-spacing: 1px;
+          border-spacing: 0;
 
           & :is(th, td) {
             padding-block: 7px;
+            outline: 1px solid var(--green3);
           }
 
           & > tbody {
@@ -608,28 +609,17 @@ main {
             & > tr {
               position: relative;
 
-              & > .holiday {
-                position: absolute;
-                background-color: var(--orange1);
-                color: var(--green1);
-                width: 100%;
-                height: 100%;
-                top: 50%;
-                left: 50%;
-                translate: var(--holiday-position);
-                transition: translate 1s;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-              }
-
               & > td {
-                background-color: var(--orange2);
+                background-color: var(--orange5);
               }
             }
 
-            & > tr.today > :is(th, td) {
-              background-color: var(--orange3);
+            & > tr.today {
+              background-color: var(--orange1);
+
+              & > :is(th, td) {
+                background-color: transparent;
+              }
             }
 
             & > tr.header {
@@ -656,11 +646,71 @@ main {
               outline: none;
               border: none;
 
-              &:focus > .holiday {
-                translate: -50% -50%;
+              &.holiday {
+                box-shadow: inset 0 0 0 3px #fff;
+
+                & > .holiday-info {
+                  position: fixed;
+                  z-index: 100;
+                  color: var(--green1);
+                  background-color: var(--orange5);
+                  top: 50%;
+                  left: 50%;
+                  translate: -50% -50%;
+                  transition: translate 1s;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                  align-items: center;
+                  justify-content: center;
+                  padding: 20px;
+                  opacity: 0;
+                  visibility: hidden;
+                  transition-property: opacity, visibility;
+                  transition-duration: var(--transition);
+                  width: 100%;
+                  height: 100%;
+                  pointer-events: none;
+
+                  & > .holiday-date {
+                    display: flex;
+                    gap: 7px;
+                    align-items: center;
+                    font-size: 1.5rem;
+                    margin-bottom: 30px;
+                  }
+
+                  & > .holiday-title {
+                    font-size: 2rem;
+                    border-bottom: 5px solid var(--green2);
+
+                    &::before {
+                      content: "\2716";
+                      cursor: pointer;
+                      position: absolute;
+                      top: 7px;
+                      right: 15px;
+                      font-size: 19px;
+                      font-weight: bolder;
+                      z-index: 1;
+                    }
+                  }
+
+                  & > :nth-child(n + 3) {
+                    background-color: var(--green1);
+                    color: var(--white-col);
+                    border-radius: 10px;
+                    padding: 10px 15px;
+                  }
+                }
+
+                &:focus > .holiday-info {
+                  opacity: 1;
+                  visibility: visible;
+                }
               }
 
-              &:hover {
+              &:hover:not(.today) {
                 background-color: var(--green4);
               }
             }
@@ -673,7 +723,6 @@ main {
       border-radius: var(--border-rad);
       background-color: var(--green3);
       padding: 20px;
-      /* display: flex; */
       justify-content: flex-start;
       align-items: center;
       flex-direction: column;
