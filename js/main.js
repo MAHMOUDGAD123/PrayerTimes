@@ -815,7 +815,6 @@ function set_month_calendar(data) {
   tbody.querySelectorAll("tr.holiday").forEach((tr) => {
     tr.addEventListener("click", (e) => {
       e.currentTarget.classList.toggle("show");
-      console.log("clicked");
     });
   });
 
