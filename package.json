@@ -1,0 +1,32 @@
+{
+  "name": "prayer_times",
+  "version": "1.0.0",
+  "main": "",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf ./assets ./css ./main.js ./index.html",
+    "build": "npm run clean && node --no-deprecation esbuild.config.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MAHMOUDGAD123/PrayerTimes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MAHMOUDGAD123/PrayerTimes/issues"
+  },
+  "homepage": "https://github.com/MAHMOUDGAD123/PrayerTimes#readme",
+  "description": "",
+  "devDependencies": {
+    "@chialab/esbuild-plugin-css-import": "^0.18.0",
+    "@chialab/esbuild-plugin-html": "^0.18.2",
+    "cssnano": "^7.0.6",
+    "esbuild": "^0.24.2",
+    "htmlnano": "^2.1.0",
+    "postcss": "^8.4.49",
+    "svgo": "^3.3.2",
+    "terser": "^5.37.0"
+  }
+}
