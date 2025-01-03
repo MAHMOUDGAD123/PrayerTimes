@@ -105,6 +105,7 @@ const en_ar = new Map([
   ["Ashura", "يوم عاشوراء"],
   ["Mawlid al-Nabi", "مولد النبي (ص)"],
   ["Beginning of the holy months", "بداية الأشهر الحرم"],
+  ["End of the holy months", "نهاية الأشهر الحرم"],
   ["Lailat-ul-Ragha'ib", "ليلة الرغائب"],
   [
     "Urs of Mawlana Shaykh Nazim al-Haqqani (ق)",
@@ -607,6 +608,7 @@ function set_month_calendar(data) {
   // ====================================================
   const hijri_month_1st = data[0].date.hijri.month.en;
   const hijri_month_2nd = data[$days - 1].date.hijri.month.en;
+  const hijri_month_1st_n = data[0].date.hijri.month.number;
   const hijri_year_1st = data[0].date.hijri.year;
   const hijri_year_2nd = data[$days - 1].date.hijri.year;
 
@@ -698,11 +700,13 @@ function set_month_calendar(data) {
     const timings = day.timings;
     const next_hijri_month = hijri.month.number;
 
+    console.log(hijri);
+
     if (curr_hijri_month !== next_hijri_month) {
       set_t_header(gregorian_month.en, hijri_month_2nd);
     }
 
-    let en_weekday = gregorian.weekday.en.slice(0, 3).toLowerCase();
+    const en_weekday = gregorian.weekday.en.slice(0, 3).toLowerCase();
     const ar_weekday = en_ar.get(en_weekday);
     const g_day = +gregorian.day;
     const h_day = +hijri.day;
@@ -745,8 +749,8 @@ function set_month_calendar(data) {
       // add date to the holiday
       [
         [h_day, false],
-        [hijri_month_1st, true],
-        [hijri_year_1st, false],
+        [hijri.month.en, true],
+        [hijri.year, false],
       ].forEach(([data, isText]) => {
         const div = document.createElement("div");
         if (isText) {
