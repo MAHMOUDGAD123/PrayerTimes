@@ -83,8 +83,8 @@ const en_ar = new Map([
   // others
   ["Holiday", "المناسبة"],
   ["Times", "أوقات"],
-  ["Today", "اليوم"],
   ["Prayer", "الصلاة"],
+  ["Today", "اليوم"],
   ["Remaining Time", "الوقت المتبقي"],
   ["MG", "إم جي"],
   ["Designed-by", "تصميم"],
