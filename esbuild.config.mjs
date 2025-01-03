@@ -16,8 +16,10 @@ const fontPlugin = {
   },
 };
 
-try {
-  await esbuild.build({
+console.time("T");
+
+await esbuild
+  .build({
     entryPoints: ["src/index.html"],
     bundle: true,
     minify: true,
@@ -83,8 +85,12 @@ try {
       fontPlugin,
     ],
     metafile: true,
+  })
+  .then(() => {
+    console.timeEnd("T");
+    console.log("Built Successfully 🚀");
+  })
+  .catch((err) => {
+    console.error("ESBuild Error:", err);
+    process.exit(1);
   });
-} catch (err) {
-  console.error(err);
-  process.exit(1);
-}
