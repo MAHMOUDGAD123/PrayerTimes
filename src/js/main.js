@@ -266,7 +266,9 @@ set_lang();
 (async () => {
   if (run) {
     // get data from api
-    const { data, address, temperature } = await api();
+    const { data, address, temperature } = await api({
+      time_only: false,
+    });
     // do nothing if null
     if (data) {
       // Prayer Times Page
@@ -345,7 +347,7 @@ function set_lang() {
 const update_dates_times = async () => {
   // use this function to update the (dates & times) at the end of the day
   // get data from api
-  const { data } = await api(true);
+  const { data } = await api({ time_only: true });
 
   // do nothing if null
   if (data) {
@@ -825,15 +827,15 @@ function set_month_calendar(data) {
 
 async function update_month_calendar(month, year) {
   const loading = document.getElementById("loading");
-  loading.style.opacity = 1;
-  const { data } = await api(true, month, year);
-  loading.style.opacity = 0;
-  // console.log("Data:", data);
+  loading.classList.add("run");
+  const { data } = await api({ time_only: true, month, year, timeout: 5000 });
+  loading.classList.remove("run");
   if (data) {
     set_month_calendar(data);
-  } else {
-    bad_internet();
+    return true;
   }
+  bad_internet();
+  return false;
 }
 //========================= Functions End =========================
 
@@ -865,18 +867,46 @@ page_btn.forEach((btn_id, page_id, map) => {
 });
 
 // table selections
-document.getElementById("t_sel_month").addEventListener("input", (e) => {
-  const month = +e.target.value;
-  const year = +document.getElementById("t_sel_year").value;
-  // console.log("Month:", month);
-  update_month_calendar(month, year);
-});
-document.getElementById("t_sel_year").addEventListener("input", (e) => {
-  const month = +document.getElementById("t_sel_month").value;
-  const year = +e.target.value;
-  // console.log("Year:", year);
-  update_month_calendar(month, year);
-});
+(async () => {
+  let prev_month = "";
+  let prev_year = "";
+  const month_sel_ele = document.getElementById("t_sel_month");
+  const year_sel_ele = document.getElementById("t_sel_year");
+
+  month_sel_ele.addEventListener("focus", (e) => {
+    console.log(e.target.value);
+    prev_month = e.target.value;
+  });
+  year_sel_ele.addEventListener("focus", (e) => {
+    console.log(e.target.value);
+    prev_year = e.target.value;
+  });
+
+  month_sel_ele.addEventListener("change", (e) => {
+    const month = +month_sel_ele.value;
+    const year = +year_sel_ele.value;
+    console.log({ month, year });
+    month_sel_ele.blur();
+    update_month_calendar(month, year).then((res) => {
+      if (!res) {
+        month_sel_ele.value = prev_month;
+        console.error("failed to update month");
+      }
+    });
+  });
+  year_sel_ele.addEventListener("change", (e) => {
+    const month = +month_sel_ele.value;
+    const year = +year_sel_ele.value;
+    console.log({ month, year });
+    month_sel_ele.blur();
+    update_month_calendar(month, year).then((res) => {
+      if (!res) {
+        year_sel_ele.value = prev_year;
+        console.error("failed to update year");
+      }
+    });
+  });
+})();
 
 // settings switches
 settings_switches.forEach((action_fun, switch_id) => {

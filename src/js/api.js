@@ -25,8 +25,26 @@ const get_weather = async (lat, lng) => {
   return address;
 };
 
+/**
+ * fetch with timeout
+ * @param {*} request Request
+ * @param {*} timeout numbe
+ * @returns {Promise<any>}
+ */
+const fetchTimeout = async (request, timeout = 30000) => {
+  return Promise.race([
+    fetch(request),
+    new Promise((resolve) => setTimeout(resolve, timeout, { ok: false })),
+  ]);
+};
+
 // athan - location - weather
-export const api = (time_only = false, month = 0, year = 0) => {
+export const api = ({
+  time_only = false,
+  month = 0,
+  year = 0,
+  timeout = 10000,
+}) => {
   return new Promise((resolve) => {
     const success = async (pos) => {
       const date = new Date();
@@ -52,32 +70,39 @@ export const api = (time_only = false, month = 0, year = 0) => {
       const req = new Request(url, { method: "GET" });
       let Trials = 3;
 
-      do {
-        res = await fetch(req);
-        // console.log('Fetch Trials [' + (Trials - 1) + ']');
-      } while (!res.ok && --Trials);
+      try {
+        do {
+          res = await fetchTimeout(req, timeout);
+          console.log("fetching");
+        } while (!res.ok && --Trials);
 
-      if (res.ok) {
-        // don't fetch for location or weather if only_time
-        if (!time_only) {
-          location = await get_location(lat, lng);
-          weather = await get_weather(lat, lng);
+        console.log("fetched");
 
-          if (location) {
-            address = location.address;
+        if (res.ok) {
+          // don't fetch for location or weather if only_time
+          if (!time_only) {
+            location = await get_location(lat, lng);
+            weather = await get_weather(lat, lng);
+
+            if (location) {
+              address = location.address;
+            }
+            if (weather) {
+              temperature = Math.round(+weather.current.temperature_2m);
+            }
           }
-          if (weather) {
-            temperature = Math.round(+weather.current.temperature_2m);
-          }
+
+          // console.log("Fetch Athan ✅");
+          data = (await res.json()).data;
+        } else {
+          throw new Error("timeout");
         }
 
-        // console.log("Fetch Athan ✅");
-        data = (await res.json()).data;
-      } else {
-        // console.log("Fetch Athan ❌");
+        resolve({ data, address, temperature });
+      } catch (err) {
+        console.error(err);
+        resolve({ data: null, address: null, temperature: 0 });
       }
-
-      resolve({ data, address, temperature });
     };
 
     const error = (err) => {

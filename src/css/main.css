@@ -413,7 +413,7 @@ main {
 
             & > .icon-name {
               display: flex;
-              align-items: center;
+              /* align-items: center; */
               gap: 10px;
             }
 
@@ -516,10 +516,16 @@ main {
           width: 10px;
           aspect-ratio: 1;
           position: relative;
-          animation: r-spin infinite 1s linear;
           border-radius: 100%;
           opacity: 0;
           transition: opacity 500ms linear;
+          animation: r-spin infinite 1s linear;
+          animation-play-state: paused;
+
+          &.run {
+            opacity: 1;
+            animation-play-state: running;
+          }
 
           & > :only-child {
             background-color: var(--orange1);

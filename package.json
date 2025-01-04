@@ -4,7 +4,7 @@
   "main": "",
   "type": "module",
   "scripts": {
-    "clean": "rimraf ./assets ./css ./main.js ./index.html",
+    "clean": "rimraf dist",
     "build": "npm run clean && node --no-deprecation esbuild.config.mjs"
   },
   "repository": {
