@@ -197,6 +197,7 @@ main {
     background-size: cover;
     position: relative;
     padding: var(--padding);
+    overflow: auto;
 
     & > * {
       width: 100%;
@@ -328,6 +329,7 @@ main {
         justify-content: center;
         align-items: center;
         gap: 10px;
+        padding-bottom: 10px;
 
         & > * {
           width: 100%;
@@ -598,7 +600,7 @@ main {
         flex: 1;
         font-weight: bold;
         border-radius: 10px;
-        overflow-y: scroll;
+        overflow-y: auto;
         overscroll-behavior-block: contain;
 
         & > table {
@@ -772,6 +774,7 @@ main {
     justify-content: center;
     background-color: var(--green1);
     padding: 7px;
+    overflow: auto;
 
     & > * {
       padding: var(--padding);
