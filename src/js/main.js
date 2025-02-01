@@ -117,11 +117,20 @@ const en_ar = new Map([
   ],
   ["Urs of Sayyidina Jafar as-Sadiq (ق)", "عرس سيدنا جعفر الصادق (ق)"],
   ["Urs of Zaynab bint Ali (ر)", "عرس السيدة زينب بنت علي (ر)"],
-  ["", ""],
-  ["", ""],
-  ["", ""],
-  ["", ""],
-  ["", ""],
+  ["Birth of Sayyidina Husayn ibn `Ali (ر)", "مولد سيدنا الحسين بن علي (ر)"],
+  ["Birth of Sayyidina Abbas ibn `Ali (ر)", "مولد سيدنا العباس بن علي (ر)"],
+  ["Birth of Sayyidina `Ali ibn Husayn (ر)", "مولد سيدنا علي بن الحسين (ر)"],
+  ["Urs of Imam Shamil al-Daghestani (ق)", "عرس الإمام شامل الداغستاني (ق)"],
+  ["Birth of Sayyidina Qasim ibn Hasan (ر)", "مولد سيدنا القاسم بن الحسن (ر)"],
+  [
+    "Birth of Sayyidina Ali Akbar ibn Husayn (ر)",
+    "مولد سيدنا علي أكبر بن الحسين (ر)",
+  ],
+  [
+    "Urs of Sayyidina Abu Yazid al-Bistami (ق)",
+    "عرس سيدنا أبو يزيد البسطامي (ق)",
+  ],
+  ["Urs of Muhammad Usman Damani", "عرس محمد عثمان داماني"],
 ]);
 
 // page_btn_id => page_id
@@ -816,7 +825,14 @@ function set_month_calendar(data) {
 
   tbody.querySelectorAll("tr.holiday").forEach((tr) => {
     tr.addEventListener("click", (e) => {
-      e.currentTarget.classList.toggle("show");
+      const isOpen = tr.classList.contains("show");
+      if (isOpen) {
+        if (e.target.matches(".holiday-info")) {
+          e.currentTarget.classList.remove("show");
+        }
+      } else {
+        e.currentTarget.classList.add("show");
+      }
     });
   });
 
