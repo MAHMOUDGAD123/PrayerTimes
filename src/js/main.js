@@ -124,7 +124,7 @@ const en_ar = new Map([
   ["Birth of Sayyidina Qasim ibn Hasan (ر)", "مولد سيدنا القاسم بن الحسن (ر)"],
   [
     "Birth of Sayyidina Ali Akbar ibn Husayn (ر)",
-    "مولد سيدنا علي أكبر بن الحسين (ر)",
+    "مولد سيدنا علي الأكبر بن الحسين (ر)",
   ],
   [
     "Urs of Sayyidina Abu Yazid al-Bistami (ق)",
