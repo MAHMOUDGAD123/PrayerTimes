@@ -546,7 +546,7 @@ main {
             var(--orange3)
           );
           color: var(--white-col);
-          width: 105px;
+          width: 110px;
           font-size: calc(0.7rem + 0.5vw);
 
           &:focus-visible {
