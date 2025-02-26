@@ -536,9 +536,9 @@ main {
         & > select {
           border: none;
           outline: none;
-          border-radius: 10px;
+          border-radius: 13px;
           padding: 5px 1px 5px 7px;
-          padding: 5px;
+          padding: 6px 5px;
           background-color: var(--green1);
           background-image: linear-gradient(
             to right,
@@ -546,8 +546,8 @@ main {
             var(--orange3)
           );
           color: var(--white-col);
-          width: 110px;
-          font-size: calc(0.7rem + 0.5vw);
+          width: 115px;
+          font-size: clamp(0.65rem, calc(0.5rem + 1.5dvw), 0.95rem);
 
           &:focus-visible {
             outline: 2px solid var(--white-col);
