@@ -15,11 +15,7 @@
     <link rel="icon" href="./assets/imgs/logo.svg" type="image/svg+xml" />
     <!-- 180×180 -->
     <link rel="apple-touch-icon" href="./assets/imgs/logo.png" />
-    <link
-      rel="manifest"
-      href="../manifest.webmanifest"
-      crossorigin="use-credentials"
-    />
+    <!-- <link rel="manifest" href="../manifest.webmanifest" /> -->
     <link rel="stylesheet" href="./assets/fa/css/all.min.css" />
     <link rel="stylesheet" href="./css/main.css" />
     <script src="./js/main.js" type="module" defer></script>
@@ -36,6 +32,7 @@
         </div>
       </div>
     </header>
+
     <main>
       <nav>
         <div tabindex="0" id="prayer_times_btn">
@@ -51,6 +48,7 @@
           <div class="txt" data-en="Settings">Settings</div>
         </div>
       </nav>
+
       <div class="content">
         <div id="prayerTimesPage">
           <!-- bad internet icon -->
@@ -75,14 +73,12 @@
               </div>
             </div>
           </div>
-          <div class="location_temp">
+
+          <div class="location">
             <i class="fa-solid fa-location-crosshairs icon"></i>
-            <div id="city_country">-</div>
-            <div class="temperature">
-              <i class="fa-solid fa-temperature-half"></i>
-              <div class="degree">-</div>
-            </div>
+            <div id="address">-</div>
           </div>
+
           <div class="clock">
             <i class="fa-regular fa-clock icon"></i>
             <div class="time">
@@ -93,6 +89,7 @@
               <div class="sec"></div>
             </div>
           </div>
+
           <div class="times">
             <div class="next-prayer">
               <div class="prayer-name" data-en="Prayer">Prayer</div>
@@ -158,6 +155,7 @@
             </div>
           </div>
         </div>
+
         <div id="monthCalendarPage">
           <div class="hijri-m-y">
             <div class="t_hijri_1st">
@@ -179,6 +177,7 @@
           </div>
           <div class="t-wrapper"><table id="cal_table"></table></div>
         </div>
+
         <div id="settingsPage">
           <div class="language option">
             <span data-en="English">English</span>

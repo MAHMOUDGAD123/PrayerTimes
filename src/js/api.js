@@ -1,118 +1,89 @@
-const get_location = async (lat, lng) => {
-  const key = "65f288a00d129207874014qnh3d03c5";
-  const url = `https://geocode.maps.co/reverse?lat=${lat}&lon=${lng}&api_key=${key}`;
-  const req = new Request(url, { method: "GET" });
-  const res = await fetch(req);
-  if (!res.ok) {
-    // console.log("Fetch Location ❌");
-    return null;
-  }
-  // console.log("Fetch Locaiton ✅");
-  const address = await res.json();
-  return address;
-};
+/**
+ * @param {number} lat latitude
+ * @param {number} lng longitude
+ * @returns {Promise<{country: string, state: string, city?: string, town?: string} | null>}
+ */
+export const fetch_address = async (lat, lng) => {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
 
-const get_weather = async (lat, lng) => {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m`;
-  const req = new Request(url, { method: "GET" });
-  const res = await fetch(req);
-  if (!res.ok) {
-    // console.log("Fetch Weather ❌");
+  try {
+    const request = new Request(url, { method: "GET" });
+    const response = await fetch(request);
+
+    if (!response.ok) {
+      throw new Error("Faild to Fetch Location 🟥");
+    }
+    console.log("Fetch Locaiton 🟩");
+    const data = (await response.json()).address;
+    const country = data.country;
+    const state = data.state ? `${data.state} - ` : "";
+    const city_town = data.city || data.town;
+    const city = city_town ? `${city_town} - ` : "";
+    return `${city}${state}${country}`;
+  } catch (error) {
+    console.error(error);
     return null;
   }
-  // console.log("Fetch Weather ✅");
-  const address = await res.json();
-  return address;
 };
 
 /**
- * fetch with timeout
- * @param {*} request Request
- * @param {*} timeout numbe
- * @returns {Promise<any>}
+ * @param {number} lat latitude
+ * @param {number} lng longitude
+ * @param {number} month the month (1 -> 12)
+ * @param {number} year the year
+ * @returns {Promise<unknown[] | null>}
  */
-const fetchTimeout = async (request, timeout = 30000) => {
-  return Promise.race([
-    fetch(request),
-    new Promise((resolve) => setTimeout(resolve, timeout, { ok: false })),
-  ]);
+export const fetch_prayers_times = async (
+  lat,
+  lng,
+  month = undefined,
+  year = undefined
+) => {
+  const now = new Date();
+  const _month = month || now.getMonth() + 1;
+  const _year = year || now.getFullYear();
+  const url = `https://api.aladhan.com/v1/calendar/${_year}/${_month}?latitude=${lat}&longitude=${lng}&method=5`;
+
+  try {
+    const request = new Request(url, { method: "GET" });
+    const response = await fetch(request);
+
+    if (!response.ok) {
+      throw new Error("Faild To Fetch Prayer Tiems 🟥");
+    }
+
+    return (await response.json()).data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };
 
-// athan - location - weather
-export const api = ({
-  time_only = false,
-  month = 0,
-  year = 0,
-  timeout = 10000,
-}) => {
-  return new Promise((resolve) => {
-    const success = async (pos) => {
-      const date = new Date();
-      if (!month) {
-        month = date.getMonth() + 1;
-      }
-      if (!year) {
-        year = date.getFullYear();
-      }
-      const crd = pos.coords;
-      const lat = crd.latitude;
-      const lng = crd.longitude;
-
-      // console.log("Coordinates ✅", "\nlat:", lat, "\nlng:", lng);
-
-      const url = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=5`;
-      let data = null;
-      let location = null;
-      let weather = null;
-      let temperature = 0;
-      let address = null;
-      let res = null;
-      const req = new Request(url, { method: "GET" });
-      let Trials = 3;
-
-      try {
-        do {
-          res = await fetchTimeout(req, timeout);
-          console.log("fetching");
-        } while (!res.ok && --Trials);
-
-        console.log("fetched");
-
-        if (res.ok) {
-          // don't fetch for location or weather if only_time
-          if (!time_only) {
-            location = await get_location(lat, lng);
-            weather = await get_weather(lat, lng);
-
-            if (location) {
-              address = location.address;
-            }
-            if (weather) {
-              temperature = Math.round(+weather.current.temperature_2m);
-            }
-          }
-
-          // console.log("Fetch Athan ✅");
-          data = (await res.json()).data;
-        } else {
-          throw new Error("timeout");
-        }
-
-        resolve({ data, address, temperature });
-      } catch (err) {
-        console.error(err);
-        resolve({ data: null, address: null, temperature: 0 });
-      }
+/**
+ * @returns {Promise<{latitude: number, longitude: number}>}
+ */
+export const fetch_geolocation = () => {
+  return new Promise((resolve, reject) => {
+    /**@param {GeolocationPosition} position*/
+    const success = async (position) => {
+      const { latitude, longitude } = position.coords;
+      resolve({
+        latitude: latitude,
+        longitude: longitude,
+      });
+      console.log("Coordinates ✅", "\nlat:", latitude, "\nlng:", longitude);
     };
 
-    const error = (err) => {
-      // console.log("Coordinates ❌");
-      resolve({ data: null, address: null, temperature: 0 });
+    /**@param {GeolocationPositionError} get_error*/
+    const error = (get_error) => {
+      reject("Faild To Fetch Geo-Location 🟥");
+      console.error(get_error.message);
     };
 
+    /**@type {PositionOptions} */
     const options = {
       enableHighAccuracy: true,
-      timeout: 7000,
+      timeout: 10000,
       maximumAge: 0,
     };
 

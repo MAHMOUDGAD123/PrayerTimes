@@ -283,29 +283,12 @@ main {
         }
       }
 
-      & > .location_temp {
+      & > .location {
         display: flex;
         align-items: center;
         gap: 10px;
         color: var(--white-col);
         font-family: var(--en_font);
-
-        & > .temperature {
-          display: flex;
-          gap: 10px;
-          align-items: center;
-          color: var(--white-col);
-
-          & > .degree {
-            display: flex;
-            gap: 1px;
-            direction: ltr;
-
-            &::after {
-              content: "\00B0""C";
-            }
-          }
-        }
       }
 
       & > .clock {

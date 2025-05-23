@@ -1,13 +1,29 @@
 //=================== API Start ====================
-import { api } from "./api.js";
+import {
+  fetch_geolocation,
+  fetch_address,
+  fetch_prayers_times,
+} from "./api.js";
+import { _Storage } from "./storage.js";
 //==================== API End =====================
 
 //==================== Data & tools Start =====================
-let run = true;
+const lang_storage_key = "__prayertimes_lang__";
+const coords_storage_key = "__prayertimes_coords__";
+const address_storage_key = "__prayertimes_adrs__";
+
 let curr_prayer_key = 0;
 let curr_page = null;
-// en: true | ar: false
-let en = window.localStorage.getItem("lng") === "en" ? true : false;
+/**@type {{latitude: number, longitude: number}} */
+let coordinates = null;
+/**@type {string | null} */
+let currentAddress = null;
+
+/**
+ * english -> true | arabic -> false
+ * @type {boolean}
+ */
+let lang = readLang();
 
 const en_ar = new Map([
   // weekdays
@@ -238,21 +254,23 @@ const prayers = new Map([
   ],
 ]);
 
+/**@param {string} time*/
 const get_time_only = (time) => {
   return time.slice(0, 5);
 };
 
+/**@param {string} time*/
 const get_hr_min = (time) => {
   const hr = +time.slice(0, 2);
   const min = +time.slice(3, 5);
   return [hr, min];
 };
 
-const end_of_day = () => {
+const is_end_of_day = () => {
   return curr_prayer_key >= prayers.size;
 };
 
-const bad_internet = () => {
+const show_bad_internet = () => {
   const bad_net_icon = curr_page.querySelector("i.bad-net");
   bad_net_icon.style.display = "block";
 
@@ -260,6 +278,39 @@ const bad_internet = () => {
     bad_net_icon.style.display = "none";
   }, 2500);
 };
+
+/**@param {number} n*/
+const leading_zero_num = (n) => {
+  return n.toString().padStart(2, "0");
+};
+
+const saveCoordinates = () => {
+  _Storage.save(coords_storage_key, coordinates, "localStorage");
+};
+
+/**@returns {{latitude: number, longitude: number} | null}*/
+function readCoordinates() {
+  return _Storage.read(coords_storage_key, "localStorage");
+}
+
+/**@param {boolean} lang*/
+function saveLang(lang) {
+  _Storage.save(lang_storage_key, lang, "localStorage");
+}
+
+/**@returns {boolean | null}*/
+function readLang() {
+  return _Storage.read(lang_storage_key, "localStorage");
+}
+
+function saveAddress() {
+  _Storage.save(address_storage_key, currentAddress, "localStorage");
+}
+
+/**@returns {string | null}*/
+function readAddress() {
+  return _Storage.read(address_storage_key, "localStorage");
+}
 //===================== Data & tools End ======================
 
 //===================== initialization Start ======================
@@ -271,13 +322,20 @@ document.getElementById(page_btn.get(curr_page.id)).classList.add("picked");
 set_month_year_selections();
 set_lang();
 
-// data init
+// app init
 (async () => {
-  if (run) {
+  try {
+    coordinates = readCoordinates();
+
+    if (!coordinates) {
+      coordinates = await fetch_geolocation();
+      saveCoordinates();
+    }
+
+    const { latitude, longitude } = coordinates;
     // get data from api
-    const { data, address, temperature } = await api({
-      time_only: false,
-    });
+    const data = await fetch_prayers_times(latitude, longitude);
+
     // do nothing if null
     if (data) {
       // Prayer Times Page
@@ -286,24 +344,10 @@ set_lang();
       const next_prayer_key = get_next_prayer_key();
       set_next_prayer(next_prayer_key);
 
-      if (address) {
-        // add the location
-        const address_ele = document.getElementById("city_country");
-        const city = address.city;
-        const city_state = city ? city : address.state;
-        address_ele.textContent = `${city_state} - ${address.country}`;
-        // Month Calendar Page
-        set_month_calendar(data);
-      }
+      // Month Calendar Page
+      set_month_calendar(data);
 
-      if (temperature) {
-        const temp_ele = document.querySelector(
-          ".location_temp > .temperature > .degree"
-        );
-        temp_ele.textContent = `${temperature}`;
-      }
-
-      // notification request
+      // notification access request to the user
       document.addEventListener(
         "click",
         (e) => {
@@ -314,11 +358,25 @@ set_lang();
         { once: true }
       );
     } else {
-      bad_internet();
+      show_bad_internet();
     }
+
+    currentAddress = readAddress();
+
+    if (!currentAddress) {
+      currentAddress = await fetch_address(latitude, longitude);
+      saveAddress();
+    }
+
+    // add the location
+    const address_ele = document.getElementById("address");
+    address_ele.textContent = currentAddress ?? "???";
+  } catch (error) {
+    show_bad_internet();
+    console.error(error);
   }
 })();
-//====================== initialization & testing End =======================
+//====================== initialization End =======================
 
 //========================= Functions Start =========================
 
@@ -327,8 +385,8 @@ function set_lang() {
   const logo = document.querySelector(".logo > .txt");
   const _switch = document.getElementById("langSwitch");
 
-  if (en) {
-    en = false;
+  if (lang) {
+    lang = false;
     _switch.classList.add("on");
     document.body.classList.add("ar");
     logo.classList.add("ar");
@@ -337,9 +395,9 @@ function set_lang() {
       const en_txt = ele.dataset.en;
       ele.textContent = en_ar.get(en_txt);
     });
-    window.localStorage.setItem("lng", "en");
+    saveLang(true);
   } else {
-    en = true;
+    lang = true;
     _switch.classList.remove("on");
     document.body.classList.remove("ar");
     logo.classList.remove("ar");
@@ -348,7 +406,7 @@ function set_lang() {
       const en_txt = ele.dataset.en;
       ele.textContent = en_txt;
     });
-    window.localStorage.setItem("lng", "ar");
+    saveLang(false);
   }
 }
 
@@ -356,7 +414,10 @@ function set_lang() {
 const update_dates_times = async () => {
   // use this function to update the (dates & times) at the end of the day
   // get data from api
-  const { data } = await api({ time_only: true });
+  const data = await fetch_prayers_times(
+    coordinates.latitude,
+    coordinates.longitude
+  );
 
   // do nothing if null
   if (data) {
@@ -364,7 +425,7 @@ const update_dates_times = async () => {
     set_times_dates(_today);
     set_next_prayer(1);
   } else {
-    bad_internet();
+    show_bad_internet();
   }
 };
 
@@ -397,7 +458,7 @@ function set_times_dates(_today) {
   g_month.dataset.en = g_month_name;
   h_month.dataset.en = h_month_name;
 
-  if (en) {
+  if (lang) {
     today_name.textContent = weekday;
     h_month.textContent = h_month_name;
     g_month.textContent = g_month_name;
@@ -448,7 +509,7 @@ function set_counter_down(key) {
   const curr_prayer_time = prayers.get(key).time;
   const hr = curr_prayer_time.hr;
   const min = curr_prayer_time.min;
-  untill.setHours(hr, min);
+  untill.setHours(hr, min, 0, 0);
 
   const h = document.querySelector(".counter-down > .hr");
   const m = document.querySelector(".counter-down > .min");
@@ -461,17 +522,17 @@ function set_counter_down(key) {
   // count down interval
   const intervId = setInterval(() => {
     const now = Date.now();
-    const dif = untill - now;
+    const diff = untill - now;
 
-    const hrs = Math.floor(dif / ms_hr);
-    const mins = Math.floor((dif % ms_hr) / ms_min);
-    const secs = Math.floor((dif % ms_min) / ms_sec);
+    const hrs = Math.floor(diff / ms_hr);
+    const mins = Math.floor((diff % ms_hr) / ms_min);
+    const secs = Math.floor((diff % ms_min) / ms_sec);
 
-    h.textContent = frmt_time(hrs);
-    m.textContent = frmt_time(mins);
-    s.textContent = frmt_time(secs);
+    h.textContent = leading_zero_num(hrs);
+    m.textContent = leading_zero_num(mins);
+    s.textContent = leading_zero_num(secs);
 
-    if (dif <= 0) {
+    if (diff <= 0) {
       clearInterval(intervId);
       let athan_time_out = 60000;
 
@@ -495,7 +556,7 @@ function set_counter_down(key) {
 
       setTimeout(() => {
         counter_down.classList.remove("blink");
-        if (end_of_day()) {
+        if (is_end_of_day()) {
           update_dates_times();
         } else {
           set_next_prayer(get_next_prayer_key(false));
@@ -559,7 +620,7 @@ function set_next_prayer(key) {
   const rem_time_txt = rem_time.dataset.en;
   prayer_name.dataset.en = name;
 
-  if (en) {
+  if (lang) {
     prayer_name.textContent = name;
     rem_time.textContent = rem_time_txt;
   } else {
@@ -573,16 +634,16 @@ function set_next_prayer(key) {
 
 function get_prayer_name(key) {
   const name = prayers.get(key).name;
-  return en ? name : en_ar.get(name);
+  return lang ? name : en_ar.get(name);
 }
 
-//---------- Month Calendar Page ----------
+//---------- Month Calendar Page functions ----------
 function set_month_year_selections() {
   const month_sel = document.getElementById("t_sel_month");
   const year_sel = document.getElementById("t_sel_year");
   const now = new Date();
 
-  if (en) {
+  if (lang) {
     months.forEach((m, i) => {
       month_sel.innerHTML += `<option value="${
         i + 1
@@ -632,7 +693,7 @@ function set_month_calendar(data) {
   t_hijri_1st_month.dataset.en = hijri_month_1st;
   t_hijri_2nd_month.dataset.en = hijri_month_2nd;
 
-  if (en) {
+  if (lang) {
     t_hijri_1st_month.textContent = hijri_month_1st;
     t_hijri_2nd_month.textContent = hijri_month_2nd;
   } else {
@@ -650,7 +711,7 @@ function set_month_calendar(data) {
   table.innerHTML = ""; // clear the table
 
   const set_t_header = (gregorian, hijri) => {
-    if (en) {
+    if (lang) {
       tbody.innerHTML += `
       <tr class="header">
         <th scope="col" class="g-month" data-en="${gregorian}">${gregorian}</th>
@@ -730,7 +791,7 @@ function set_month_calendar(data) {
     tr.innerHTML = `
       <th scope="row">
         <span>${g_day}</span> 
-        <span data-en="${en_weekday}">${en ? en_weekday : ar_weekday}</span>
+        <span data-en="${en_weekday}">${lang ? en_weekday : ar_weekday}</span>
       </th>
       <th scope="row">${h_day}</th>
       <td>${get_time_only(timings.Fajr)}</td>
@@ -752,7 +813,7 @@ function set_month_calendar(data) {
       td.className = "holiday-info";
       holidayTitle.className = "holiday-title";
       holidayTitle.dataset.en = "Holiday";
-      holidayTitle.textContent = en ? "Holiday" : en_ar.get("Holiday");
+      holidayTitle.textContent = lang ? "Holiday" : en_ar.get("Holiday");
       holidayDate.className = "holiday-date";
 
       // add date to the holiday
@@ -764,7 +825,7 @@ function set_month_calendar(data) {
         const div = document.createElement("div");
         if (isText) {
           div.dataset.en = data;
-          div.textContent = en ? data : en_ar.get(data);
+          div.textContent = lang ? data : en_ar.get(data);
         } else {
           div.textContent = data;
         }
@@ -803,7 +864,7 @@ function set_month_calendar(data) {
         }
 
         div.dataset.en = hd_name;
-        div.textContent = en ? hd_name : en_ar.get(hd_name);
+        div.textContent = lang ? hd_name : en_ar.get(hd_name);
         frag.appendChild(div);
       });
 
@@ -844,15 +905,21 @@ function set_month_calendar(data) {
 async function update_month_calendar(month, year) {
   const loading = document.getElementById("loading");
   loading.classList.add("run");
-  const { data } = await api({ time_only: true, month, year, timeout: 5000 });
+  const data = await fetch_prayers_times(
+    coordinates.latitude,
+    coordinates.longitude,
+    month,
+    year
+  );
   loading.classList.remove("run");
   if (data) {
     set_month_calendar(data);
     return true;
   }
-  bad_internet();
+  show_bad_internet();
   return false;
 }
+
 //========================= Functions End =========================
 
 //========================= Events Start =========================
@@ -883,25 +950,22 @@ page_btn.forEach((btn_id, page_id, map) => {
 });
 
 // table selections
-(async () => {
+(() => {
   let prev_month = "";
   let prev_year = "";
   const month_sel_ele = document.getElementById("t_sel_month");
   const year_sel_ele = document.getElementById("t_sel_year");
 
   month_sel_ele.addEventListener("focus", (e) => {
-    console.log(e.target.value);
     prev_month = e.target.value;
   });
   year_sel_ele.addEventListener("focus", (e) => {
-    console.log(e.target.value);
     prev_year = e.target.value;
   });
 
   month_sel_ele.addEventListener("change", (e) => {
     const month = +month_sel_ele.value;
     const year = +year_sel_ele.value;
-    console.log({ month, year });
     month_sel_ele.blur();
     update_month_calendar(month, year).then((res) => {
       if (!res) {
@@ -913,7 +977,6 @@ page_btn.forEach((btn_id, page_id, map) => {
   year_sel_ele.addEventListener("change", (e) => {
     const month = +month_sel_ele.value;
     const year = +year_sel_ele.value;
-    console.log({ month, year });
     month_sel_ele.blur();
     update_month_calendar(month, year).then((res) => {
       if (!res) {
@@ -938,24 +1001,19 @@ settings_switches.forEach((action_fun, switch_id) => {
 });
 //========================== Events End ==========================
 
-/* Time Start */
-function frmt_time(n) {
-  if (!n) return "00";
-  return Math.floor(Math.log10(n)) ? n : "0" + n;
-}
-
+/* update time interval start */
 setInterval(() => {
   const hours = document.querySelector(".clock > .time > .hr");
   const minutes = document.querySelector(".clock > .time > .min");
   const seconds = document.querySelector(".clock > .time > .sec");
 
-  const D = new Date();
-  const hrs = frmt_time(D.getHours());
-  const mins = frmt_time(D.getMinutes());
-  const secs = frmt_time(D.getSeconds());
+  const now = new Date();
+  const hrs = leading_zero_num(now.getHours());
+  const mins = leading_zero_num(now.getMinutes());
+  const secs = leading_zero_num(now.getSeconds());
 
   hours.textContent = hrs;
   minutes.textContent = mins;
   seconds.textContent = secs;
 }, 1000);
-/* Time End */
+/* update time interval end */
