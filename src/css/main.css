@@ -41,10 +41,12 @@
   --green2: #076800;
   --green3: #076e0050;
   --green4: #0a920099;
-  --white-col: #ffffffcf;
+  --white-col: #eeeeee;
   --en_font: "en_font";
   --ar_font: "ar_font";
   --transition: 500ms;
+  --header-height: 50px;
+  --body-bg: #000000;
 }
 
 html {
@@ -60,7 +62,10 @@ html {
   box-sizing: border-box;
   font-weight: bold;
   text-align: center;
+  padding: 0;
   margin: 0;
+  outline: none;
+  border: none;
   user-select: none;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -70,21 +75,34 @@ html {
   -moz-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
+button {
+  color: inherit;
+  font-family: inherit;
+  outline: none;
+  border: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid var(--white-col);
+    outline-offset: 3px;
+  }
+}
+
 img {
   display: block;
   max-width: 100%;
 }
 
+/* hide the scrollbar */
 ::-webkit-scrollbar {
-  /* hide the scrollbar */
   display: none;
 }
 
 body {
   height: 100dvh;
-  background-color: #000;
+  background-color: var(--body-bg);
   font-family: var(--en_font), monospace;
-  gap: 10px;
+  gap: var(--padding);
   padding: var(--padding);
   display: flex;
   flex-direction: column;
@@ -131,6 +149,75 @@ body {
     }
   }
 }
+
+.spinner {
+  box-sizing: border-box;
+  overflow: visible;
+  aspect-ratio: 1;
+  width: 40px;
+
+  & > circle {
+    fill: none;
+    stroke: var(--orange1);
+    cx: 50%;
+    cy: 50%;
+    r: 50%;
+    stroke-width: 5px;
+    stroke-linecap: round;
+    transform-origin: center;
+  }
+}
+
+#appLoaderScreen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-rad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  contain: layout;
+  z-index: 10;
+  background-color: color-mix(in oklab, var(--orange1) 50%, var(--green1));
+  transition-property: opacity, visibility;
+  transition-duration: 1s;
+
+  &.shrink::before {
+    transform: none;
+  }
+
+  &.fade-out {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  &::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    border-radius: inherit;
+    background-color: inherit;
+    z-index: 1;
+    transition: transform 1s;
+    transform: translateY(calc((var(--header-height) + var(--padding)) * -1));
+  }
+}
+
+.page {
+  display: none;
+  opacity: 0;
+
+  &.picked {
+    display: flex;
+    opacity: 1;
+    animation: fade-in var(--transition) forwards;
+  }
+}
 /* Global rules End */
 
 header {
@@ -138,7 +225,33 @@ header {
   align-items: center;
   justify-content: center;
   position: relative;
-  font-size: 2rem;
+  height: var(--header-height);
+  z-index: 11;
+  transition: transform 1s;
+
+  &.loading {
+    transform: translateY(calc(45dvh - var(--header-height)));
+
+    & > .spinner {
+      display: unset;
+    }
+
+    & > .logo {
+      & > img {
+        width: 60px;
+      }
+
+      & > .txt {
+        font-size: 2rem;
+      }
+    }
+  }
+
+  & > .spinner {
+    position: absolute;
+    top: 200%;
+    display: none;
+  }
 
   & > .logo {
     display: flex;
@@ -148,14 +261,16 @@ header {
 
     & > img {
       width: 60px;
+      transition: width 1s;
     }
 
     & > .txt {
       display: flex;
       gap: 2px;
-      font-size: 1.7rem;
+      font-size: 1.75rem;
       word-spacing: -5px;
       position: relative;
+      transition: font-size 1s;
 
       & > span:first-child {
         color: var(--orange1);
@@ -180,16 +295,17 @@ header {
 }
 
 main {
-  flex: 1;
   display: flex;
   gap: 3px;
   border-radius: var(--border-rad);
-  overflow: hidden;
   background-color: var(--orange1);
   position: relative;
+  height: calc(100% - (var(--header-height) + var(--padding)));
 
   & > .content {
     flex: 1;
+    border-start-end-radius: inherit;
+    border-end-end-radius: inherit;
     background-color: var(--orange1);
     background-image: url(../assets/imgs/m1.png),
       linear-gradient(var(--orange1), var(--green1));
@@ -207,7 +323,7 @@ main {
     & i.bad-net {
       position: absolute;
       color: var(--green2);
-      animation: blink 0.5s linear 0.5s infinite alternate;
+      animation: pulse 0.5s linear 0.5s infinite alternate;
       display: none;
     }
 
@@ -218,16 +334,13 @@ main {
     & .clock {
       display: flex;
       align-items: center;
-      font-family: var(--en_font);
     }
 
     /* prayer times page start */
     & > #prayerTimesPage {
-      /* display: flex; */
       flex-direction: column;
       gap: 5px;
       position: relative;
-      display: none;
 
       & > i.bad-net {
         top: 0;
@@ -262,10 +375,6 @@ main {
           gap: 20px;
           color: var(--white-col);
 
-          & > :is(.day, .year) {
-            font-family: var(--en_font);
-          }
-
           & > * {
             display: flex;
             flex-direction: column;
@@ -289,6 +398,12 @@ main {
         gap: 10px;
         color: var(--white-col);
         font-family: var(--en_font);
+
+        & > p {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
 
       & > .clock {
@@ -298,6 +413,7 @@ main {
         & > .time {
           display: flex;
           direction: ltr;
+          font-size: 1.15rem;
 
           & > * {
             width: 18px;
@@ -332,7 +448,7 @@ main {
           white-space: normal;
 
           & > .prayer-name {
-            font-size: 4.5rem;
+            font-size: 4rem;
             margin-block-end: 15px;
           }
 
@@ -344,9 +460,9 @@ main {
             font-size: 2.5rem;
             direction: ltr;
 
-            &.blink {
+            &.pulse {
               color: var(--orange1);
-              animation: blink infinite ease 700ms alternate;
+              animation: pulse infinite ease 700ms alternate;
             }
 
             & > * {
@@ -365,10 +481,10 @@ main {
             }
 
             & > .clock.counter-down {
-              font-size: 1.2rem;
+              font-size: 1.65rem;
 
               & > * {
-                width: 20px;
+                width: 25px;
               }
             }
           }
@@ -378,7 +494,6 @@ main {
           gap: 10px;
 
           & > .prayer {
-            flex: 1;
             background-color: var(--green3);
             padding: var(--padding);
             border-radius: var(--border-rad);
@@ -398,17 +513,14 @@ main {
 
             & > .icon-name {
               display: flex;
-              /* align-items: center; */
               gap: 10px;
             }
 
             & > .time {
-              font-family: var(--en_font);
-            }
-          }
-          @container html (inline-size < 870px) {
-            .prayer.midnight {
-              display: none;
+              direction: ltr;
+              display: flex;
+              align-items: center;
+              gap: 5px;
             }
           }
         }
@@ -416,27 +528,28 @@ main {
           .prayers {
             flex-direction: row;
             align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
 
             & > * {
-              min-width: 85px;
+              max-width: 170px;
+              min-width: 95px;
               flex-direction: column;
               justify-content: normal;
               height: fit-content;
+              flex: 1 0 170px;
 
               & > .icon-name {
                 flex-direction: column;
+                font-size: 1.25rem;
 
                 & > i {
-                  font-size: 2rem;
-                }
-
-                & > .name {
-                  font-size: 1rem;
+                  font-size: 1.65rem;
                 }
               }
 
               & > .time {
-                font-size: 1.1rem;
+                font-size: 1.45rem;
               }
             }
           }
@@ -448,22 +561,43 @@ main {
 
           & > .prayers {
             flex: 2;
-          }
-        }
-      }
-      @container html (inline-size < 295px) {
-        .times {
-          gap: 5px;
 
-          & > .prayers > .prayer {
-            gap: 7px;
+            & > .prayer {
+              & > .icon-name {
+                font-size: 1.15rem;
 
-            & > .icon-name {
-              gap: 7px;
+                & > i {
+                  font-size: 1.35rem;
+                }
+              }
+
+              & > .time {
+                font-size: 1.25rem;
+              }
             }
           }
         }
       }
+      @container html (inline-size < 500px) {
+        .times {
+          flex-direction: column;
+        }
+      }
+      @container html (inline-size < 300px) {
+        .times {
+          & > .prayers > .prayer {
+            flex-direction: column;
+            gap: 7px;
+
+            & > .icon-name {
+              flex-direction: column;
+              gap: 7px;
+              font-size: 1.2rem;
+            }
+          }
+        }
+      }
+
       /* prayer times page end */
     }
 
@@ -478,7 +612,6 @@ main {
       translate: -50% -50%;
       white-space: normal;
       font-family: "cairo", monospace;
-      display: none;
 
       & > .hijri-m-y {
         display: flex;
@@ -496,7 +629,7 @@ main {
         align-items: center;
         position: relative;
 
-        & > #loading {
+        & > #tableSpinner {
           opacity: 0;
           transition: opacity 500ms linear;
           animation: r-spin infinite 1s linear;
@@ -520,8 +653,6 @@ main {
           border: none;
           outline: none;
           border-radius: 13px;
-          padding: 5px 1px 5px 7px;
-          padding: 6px 5px;
           background-color: var(--green1);
           background-image: linear-gradient(
             to right,
@@ -531,13 +662,19 @@ main {
           color: var(--white-col);
           width: 115px;
           font-size: clamp(0.65rem, calc(0.5rem + 1.5dvw), 0.95rem);
+          font-family: inherit;
 
           &:focus-visible {
-            outline: 2px solid var(--white-col);
+            outline: 3px solid var(--white-col);
+            outline-offset: 3px;
           }
 
-          & > option[value]:hover {
-            background-color: var(--orange1);
+          & > option {
+            font-family: inherit;
+
+            &[value]:hover {
+              background-color: var(--orange1);
+            }
           }
         }
       }
@@ -663,11 +800,12 @@ main {
       border-radius: var(--border-rad);
       background-color: var(--green3);
       padding: 20px;
+      gap: 25px;
       justify-content: flex-start;
       align-items: center;
       flex-direction: column;
       position: relative;
-      display: none;
+      min-height: 400px;
 
       & > .option {
         display: flex;
@@ -687,13 +825,131 @@ main {
         }
       }
 
+      & > .update-location {
+        --col: color-mix(in oklab, var(--green1) 40%, var(--orange1));
+        width: 90%;
+        padding: 15px;
+        border: 5px solid var(--col);
+        max-width: 500px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        border-radius: 10px;
+
+        & > .update-msg {
+          position: absolute;
+          top: 110%;
+          font-size: 0.85rem;
+          background-color: var(--col);
+          padding: 5px 15px;
+          border-radius: 100px;
+          animation: pulse 2s infinite ease-in-out;
+          display: none;
+          font-family: inherit;
+
+          &.show {
+            display: block;
+          }
+        }
+
+        & > legend {
+          background-color: var(--col);
+          border-radius: 100px;
+          font-size: 1.35rem;
+          position: relative;
+          contain: layout;
+          z-index: 0;
+          width: 50px;
+          aspect-ratio: 1;
+
+          &:is(.loading, .success, .faild) {
+            & > i.fa-location-dot {
+              display: none;
+            }
+          }
+
+          &.loading {
+            & > i.fa-sun {
+              display: unset;
+            }
+          }
+
+          &.success {
+            & > i.fa-circle-check {
+              display: unset;
+            }
+          }
+
+          &.faild {
+            & > i.fa-circle-xmark {
+              display: unset;
+            }
+          }
+
+          & > i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+            z-index: 2;
+            color: gold;
+
+            &.fa-circle-check,
+            &.fa-circle-xmark,
+            &.fa-sun {
+              display: none;
+            }
+            &.fa-location-dot,
+            &.fa-circle-check,
+            &.fa-circle-xmark {
+              animation: rotateY3d 3s ease-in-out infinite;
+            }
+
+            &.fa-sun {
+              animation: r-spin 1s linear infinite;
+            }
+          }
+        }
+
+        & button {
+          background-color: var(--col);
+          padding: 7px 15px 6px;
+          border-radius: 100px;
+          font-size: 0.95rem;
+          transition-duration: 200ms;
+          transition-property: background-color, scale;
+          color: #ffffff;
+
+          &:hover {
+            background-color: var(--green2);
+          }
+
+          &:active {
+            transform: scale(0.93);
+          }
+
+          &:disabled {
+            background-color: var(--green4);
+
+            &:active {
+              transform: none;
+            }
+          }
+        }
+
+        & > #setttingsLocation {
+          white-space: wrap;
+          font-family: var(--en_font);
+        }
+      }
+
       & > .copy {
         display: flex;
         align-items: center;
         justify-content: center;
-        position: absolute;
-        bottom: 20px;
         gap: 5px;
+        margin-top: auto;
 
         & > span:nth-child(1) {
           color: var(--orange1);
@@ -717,6 +973,8 @@ main {
     background-color: var(--green1);
     padding: 7px;
     overflow: auto;
+    border-start-start-radius: inherit;
+    border-end-start-radius: inherit;
 
     & > * {
       padding: var(--padding);
@@ -732,10 +990,7 @@ main {
       cursor: pointer;
       outline: none;
       border: none;
-
-      &:focus-visible {
-        outline: 2px solid var(--white-col);
-      }
+      min-width: 60px;
 
       &:hover {
         background-color: var(--orange2);
@@ -755,39 +1010,53 @@ main {
       }
     }
   }
+  @container html (inline-size < 870px) {
+    nav {
+      /* horizontal mode */
+      flex-direction: row;
+      border-start-start-radius: 0;
+      border-end-start-radius: inherit;
+      border-end-end-radius: inherit;
+
+      & > * {
+        width: 75px;
+        height: 60px;
+        gap: 5px;
+        padding: 5px;
+
+        & > i {
+          font-size: 1rem;
+        }
+
+        & > .txt {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+  @container html (inline-size < 750px) {
+    nav {
+      gap: 15px;
+    }
+  }
 }
 @container html (inline-size < 870px) {
   main {
     /* vertical mode */
     flex-direction: column-reverse;
 
-    & > nav {
-      /* horizontal mode */
-      flex-direction: row;
-      gap: 20px;
-    }
-
-    &
-      > .content
-      > #prayerTimesPage
-      > .times
-      > .prayers
-      > .prayer
-      > .icon-name
-      > i {
-      position: relative;
-      top: 3px;
+    & > .content {
+      border-start-start-radius: inherit;
+      border-start-end-radius: inherit;
+      border-end-end-radius: 0;
     }
   }
 }
 
 /* animation keyframes */
-@keyframes blink {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
   }
 }
 
@@ -812,85 +1081,29 @@ main {
   }
 }
 
+@keyframes rotateY3d {
+  to {
+    transform: rotate3d(0, 1, 0, 360deg);
+  }
+}
+
 /* @media for mobile */
-@media (height <= 770px) {
+@media (height <= 750px) {
+  :root {
+    --header-height: 35px;
+  }
+
   header {
     & > .logo {
       gap: 8px;
 
       & > img {
-        width: 50px;
+        width: 45px;
       }
 
       & > .txt {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
       }
     }
-  }
-}
-
-@media (height <= 710px) {
-  header {
-    & > .logo {
-      gap: 6px;
-
-      & > img {
-        width: 40px;
-      }
-
-      & > .txt {
-        font-size: 1.2rem;
-      }
-    }
-  }
-
-  main {
-    &
-      > .content
-      > #prayerTimesPage
-      > .times
-      > .prayers
-      > .prayer:is(.sunrise, .midnight) {
-      display: none;
-    }
-
-    & > nav > * {
-      width: 65px;
-      height: 50px;
-      gap: 5px;
-      padding: 5px;
-
-      & > i {
-        font-size: 0.8rem;
-      }
-
-      & > .txt {
-        font-size: 0.5rem;
-      }
-    }
-  }
-}
-
-@media (height <= 650px) {
-  header {
-    & > .logo {
-      gap: 4px;
-
-      & > img {
-        width: 30px;
-      }
-
-      & > .txt {
-        font-size: 0.9rem;
-      }
-    }
-  }
-
-  body {
-    gap: 5px;
-  }
-
-  main > .content > #prayerTimesPage > .times > .prayers {
-    gap: 5px;
   }
 }

@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta http-equiv="x-ua-compatible" content="IE=edge" />
+    <!-- preloads -->
+    <link rel="preload" href="./assets/fa/css/all.min.css" as="style" />
+    <link
+      rel="preload"
+      href="./assets/fonts/Cairo/Cairo-VariableFont_slnt_wght.woff2"
+      as="font"
+    />
+    <link
+      rel="preload"
+      href="./assets/fonts/ElMessiri/ElMessiri-VariableFont_wght.woff2"
+      as="font"
+    />
+    <link
+      rel="preload"
+      href="./assets/fonts/Madimi_One/MadimiOne-Regular.woff2"
+      as="font"
+    />
+
     <!-- ico 32×32 -->
     <link
       rel="icon"
@@ -11,11 +29,12 @@
       type="image/x-icon"
       sizes="any"
     />
+
     <!-- svg -->
     <link rel="icon" href="./assets/imgs/logo.svg" type="image/svg+xml" />
     <!-- 180×180 -->
     <link rel="apple-touch-icon" href="./assets/imgs/logo.png" />
-    <!-- <link rel="manifest" href="../manifest.webmanifest" /> -->
+    <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="stylesheet" href="./assets/fa/css/all.min.css" />
     <link rel="stylesheet" href="./css/main.css" />
     <script src="./js/main.js" type="module" defer></script>
@@ -23,34 +42,69 @@
   </head>
   <body>
     <!---------------------- Content Start ---------------------->
-    <header>
+    <header class="loading">
       <div class="logo">
-        <img src="./assets/imgs/logo.png" alt="logo" />
+        <img src="./assets/imgs/logo.png" alt="logo" loading="eager" />
         <div class="txt">
           <span data-en="Prayer">Prayer</span>
           <span data-en="Times">Times</span>
         </div>
       </div>
+
+      <svg class="spinner">
+        <circle>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values="-90;810"
+            keyTimes="0;1"
+            dur="2s"
+            repeatCount="indefinite"
+          ></animateTransform>
+          <animate
+            attributeName="stroke-dashoffset"
+            values="0%;0%;-157.080%"
+            calcMode="spline"
+            keySplines="0.61, 1, 0.88, 1; 0.12, 0, 0.39, 0"
+            keyTimes="0;0.5;1"
+            dur="2s"
+            repeatCount="indefinite"
+          ></animate>
+          <animate
+            attributeName="stroke-dasharray"
+            values="0% 314.159%;157.080% 157.080%;0% 314.159%"
+            calcMode="spline"
+            keySplines="0.61, 1, 0.88, 1; 0.12, 0, 0.39, 0"
+            keyTimes="0;0.5;1"
+            dur="2s"
+            repeatCount="indefinite"
+          ></animate>
+        </circle>
+      </svg>
     </header>
 
     <main>
+      <div id="appLoaderScreen"></div>
+
       <nav>
-        <div tabindex="0" id="prayer_times_btn">
+        <button id="prayer_times_btn">
           <i class="fa-solid fa-person-praying icon"></i>
           <div class="txt" data-en="Prayers">Prayers</div>
-        </div>
-        <div tabindex="0" id="month_cal_btn">
+        </button>
+
+        <button id="month_cal_btn">
           <i class="fa-solid fa-calendar-days icon"></i>
           <div class="txt" data-en="Calendar">Calendar</div>
-        </div>
-        <div tabindex="0" id="settings_btn">
+        </button>
+
+        <button id="settings_btn">
           <i class="fa-solid fa-sliders icon"></i>
           <div class="txt" data-en="Settings">Settings</div>
-        </div>
+        </button>
       </nav>
 
       <div class="content">
-        <div id="prayerTimesPage">
+        <div id="prayerTimesPage" class="page">
           <!-- bad internet icon -->
           <i class="fa-solid fa-wifi bad-net"></i>
           <div class="date">
@@ -58,7 +112,7 @@
               <div id="today" data-en="Today">Today</div>
               <i class="fa-solid fa-calendar-days icon"></i>
             </div>
-            <div class="d-m-y">
+            <div id="d-m-y" class="d-m-y">
               <div class="day">
                 <div class="hijri">-</div>
                 <div class="melady">-</div>
@@ -76,24 +130,26 @@
 
           <div class="location">
             <i class="fa-solid fa-location-crosshairs icon"></i>
-            <div id="address">-</div>
+            <p id="mainPageAddress">- - -</p>
           </div>
 
           <div class="clock">
             <i class="fa-regular fa-clock icon"></i>
             <div class="time">
-              <div class="hr"></div>
+              <div class="hr">--</div>
               <div>:</div>
-              <div class="min"></div>
+              <div class="min">--</div>
               <div>:</div>
-              <div class="sec"></div>
+              <div class="sec">--</div>
             </div>
           </div>
 
           <div class="times">
             <div class="next-prayer">
               <div class="prayer-name" data-en="Prayer">Prayer</div>
+
               <div class="txt" data-en="Remaining Time">Remaining Time</div>
+
               <div class="clock counter-down">
                 <div class="hr">--</div>
                 <div>:</div>
@@ -102,61 +158,132 @@
                 <div class="sec">--</div>
               </div>
             </div>
-            <div class="prayers">
+
+            <div class="prayers" id="prayersTimes">
+              <div class="prayer firstthird">
+                <div class="icon-name">
+                  <i class="fa-solid fa-cloud-moon"></i>
+                  <div class="name" data-en="Firstthird">Firstthird</div>
+                </div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
+              </div>
+
+              <div class="prayer lastthird">
+                <div class="icon-name">
+                  <i class="fa-solid fa-hands-praying"></i>
+                  <div class="name" data-en="Lastthird">Lastthird</div>
+                </div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
+              </div>
+
+              <div class="prayer imsak">
+                <div class="icon-name">
+                  <i class="fa-solid fa-hand"></i>
+                  <div class="name" data-en="Imsak">Imsak</div>
+                </div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
+              </div>
+
               <div class="prayer fajr">
                 <div class="icon-name">
                   <i class="fa-solid fa-moon icon"></i>
                   <div class="name" data-en="Fajr">Fajr</div>
                 </div>
-                <div class="time">--:--</div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
               </div>
+
               <div class="prayer sunrise">
                 <div class="icon-name">
                   <i class="fa-solid fa-circle-up icon"></i>
                   <div class="name" data-en="Sunrise">Sunrise</div>
                 </div>
-                <div class="time">--:--</div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
               </div>
+
               <div class="prayer dhuhr">
                 <div class="icon-name">
                   <i class="fa-solid fa-sun icon"></i>
                   <div class="name" data-en="Dhuhr">Dhuhr</div>
                 </div>
-                <div class="time">--:--</div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
               </div>
+
               <div class="prayer asr">
                 <div class="icon-name">
                   <i class="fa-solid fa-cloud-sun icon"></i>
                   <div class="name" data-en="Asr">Asr</div>
                 </div>
-                <div class="time">--:--</div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
               </div>
+
               <div class="prayer maghrib">
                 <div class="icon-name">
                   <i class="fa-solid fa-circle-down icon"></i>
                   <div class="name" data-en="Maghrib">Maghrib</div>
                 </div>
-                <div class="time">--:--</div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
               </div>
+
               <div class="prayer isha">
                 <div class="icon-name">
                   <i class="fa-solid fa-star-and-crescent icon"></i>
                   <div class="name" data-en="Isha">Isha</div>
                 </div>
-                <div class="time">--:--</div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
               </div>
+
               <div class="prayer midnight">
                 <div class="icon-name">
                   <i class="fa-solid fa-star icon"></i>
                   <div class="name" data-en="Midnight">Midnight</div>
                 </div>
-                <div class="time">--:--</div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div id="monthCalendarPage">
+        <div id="monthCalendarPage" class="page">
           <div class="hijri-m-y">
             <div class="t_hijri_1st">
               <span class="month" data-en="-"></span>
@@ -172,19 +299,33 @@
             <!-- bad internet icon -->
             <i class="fa-solid fa-wifi bad-net"></i>
             <select id="t_sel_month"></select>
-            <div id="loading"><i class="fa-solid fa-sun"></i></div>
+            <div id="tableSpinner"><i class="fa-solid fa-sun"></i></div>
             <select id="t_sel_year"></select>
           </div>
           <div class="t-wrapper"><table id="cal_table"></table></div>
         </div>
 
-        <div id="settingsPage">
+        <div id="settingsPage" class="page">
           <div class="language option">
             <span data-en="English">English</span>
-            <div class="switch" id="langSwitch" tabindex="0"></div>
+            <button class="switch" id="langSwitch"></button>
             <span data-en="Arabic">Arabic</span>
           </div>
-          <div class="theme option"></div>
+
+          <fieldset class="update-location option">
+            <legend id="locationLegend">
+              <i class="fa-solid fa-location-dot"></i>
+              <i class="fa-solid fa-circle-check"></i>
+              <i class="fa-solid fa-circle-xmark"></i>
+              <i class="fa-solid fa-sun"></i>
+            </legend>
+            <p id="setttingsLocation">- - -</p>
+            <button id="updateLocationSwitch" data-en="Update">Update</button>
+            <p class="update-msg" id="locationUpdateMsg">
+              Updated Successfully
+            </p>
+          </fieldset>
+
           <div class="copy">
             <span>&COPY;</span> <span data-en="Designed-by">Designed-by</span>
             <span data-en="MG">MG</span>

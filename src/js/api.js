@@ -1,7 +1,7 @@
 /**
  * @param {number} lat latitude
  * @param {number} lng longitude
- * @returns {Promise<{country: string, state: string, city?: string, town?: string} | null>}
+ * @returns {Promise<{display_name: string, short_name: string} | null>}
  */
 export const fetch_address = async (lat, lng) => {
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
@@ -14,12 +14,12 @@ export const fetch_address = async (lat, lng) => {
       throw new Error("Faild to Fetch Location 🟥");
     }
     console.log("Fetch Locaiton 🟩");
-    const data = (await response.json()).address;
-    const country = data.country;
-    const state = data.state ? `${data.state} - ` : "";
-    const city_town = data.city || data.town;
+    const { display_name, address } = await response.json();
+    const state = address.state ? address.state : "";
+    const city_town = address.city || address.town;
     const city = city_town ? `${city_town} - ` : "";
-    return `${city}${state}${country}`;
+    const short_name = `${city}${state}`;
+    return { display_name, short_name };
   } catch (error) {
     console.error(error);
     return null;

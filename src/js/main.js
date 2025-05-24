@@ -4,6 +4,7 @@ import {
   fetch_address,
   fetch_prayers_times,
 } from "./api.js";
+import { en_ar } from "./translation_map.js";
 import { _Storage } from "./storage.js";
 //==================== API End =====================
 
@@ -13,141 +14,21 @@ const coords_storage_key = "__prayertimes_coords__";
 const address_storage_key = "__prayertimes_adrs__";
 
 let curr_prayer_key = 0;
+/**@type {HTMLDivElement}*/
 let curr_page = null;
-/**@type {{latitude: number, longitude: number}} */
-let coordinates = null;
-/**@type {string | null} */
-let currentAddress = null;
+/**@type {{latitude: number, longitude: number} | null} */
+let coordinates = readCoordinates();
+/**@type {{display_name: string, short_name: string} | null} */
+let currentAddress = readAddress();
+
+/**@type {Intl.NumberFormat}*/
+let globalNumberFormatter;
 
 /**
- * english -> true | arabic -> false
- * @type {boolean}
+ * - English --> true
+ * - Arabic ---> false
  */
 let lang = readLang();
-
-const en_ar = new Map([
-  // weekdays
-  ["Saturday", "السبت"],
-  ["Sunday", "الأحد"],
-  ["Monday", "الإثنين"],
-  ["Tuesday", "الثلاثاء"],
-  ["Wednesday", "الأربعاء"],
-  ["Thursday", "الخميس"],
-  ["Friday", "الجمعة"],
-  // short weakdays
-  ["sat", "السبت"],
-  ["sun", "الأحد"],
-  ["mon", "الإثنين"],
-  ["tue", "الثلاثاء"],
-  ["wed", "الأربعاء"],
-  ["thu", "الخميس"],
-  ["fri", "الجمعة"],
-  // gregorian months
-  ["January", "يناير"],
-  ["February", "فبراير"],
-  ["March", "مارس"],
-  ["April", "إبريل"],
-  ["May", "مايو"],
-  ["June", "يونيو"],
-  ["July", "يوليو"],
-  ["August", "أغسطس"],
-  ["September", "سبتمبر"],
-  ["October", "أكتوبر"],
-  ["November", "نوفمبر"],
-  ["December", "ديسمبر"],
-  // hijri months
-  ["Muḥarram", "محرم"],
-  ["Ṣafar", "صفر"],
-  ["Rabīʿ al-awwal", "ربيع الأول"],
-  ["Rabīʿ al-thānī", "ربيع الثاني"],
-  ["Jumādá al-ūlá", "جماد الأول"],
-  ["Jumādá al-ākhirah", "جماد الثاني"],
-  ["Rajab", "رجب"],
-  ["Shaʿbān", "شعبان"],
-  ["Ramaḍān", "رمضان"],
-  ["Shawwāl", "شوال"],
-  ["Dhū al-Qaʿdah", "ذو القعدة"],
-  ["Dhū al-Ḥijjah", "ذو الحجة"],
-  // nav
-  ["Prayers", "الصلوات"],
-  ["Calendar", "التقويم"],
-  ["Settings", "الإعدادات"],
-  // prayers
-  ["Fajr", "الفجر"],
-  ["Sunrise", "الشروق"],
-  ["Dhuhr", "الظهر"],
-  ["Asr", "العصر"],
-  ["Maghrib", "المغرب"],
-  ["Isha", "العشاء"],
-  ["Midnight", "منتصف الليل"],
-  // settings
-  ["Language", "اللغة"],
-  ["Theme", "السمة"],
-  ["English", "إنجليزي"],
-  ["Arabic", "عربي"],
-  // numbers
-  ["0", "٠"],
-  ["1", "١"],
-  ["2", "٢"],
-  ["3", "٣"],
-  ["4", "٤"],
-  ["5", "٥"],
-  ["6", "٦"],
-  ["7", "٧"],
-  ["8", "٨"],
-  ["9", "٩"],
-  // others
-  ["Holiday", "المناسبة"],
-  ["Times", "أوقات"],
-  ["Today", "اليوم"],
-  ["Prayer", "الصلاة"],
-  ["Remaining Time", "الوقت المتبقي"],
-  ["MG", "إم جي"],
-  ["Designed-by", "تصميم"],
-  ["Athan", "أذان"],
-  // holidays
-  ["Lailat-ul-Miraj", "ليلة الإسراء والمعراج"],
-  ["Lailat-ul-Bara'at", "ليلة النصف من شعان"],
-  ["1st Day of Ramadan", "أول أيام شهر رمضان الكريم"],
-  ["Eid-ul-Fitr", "عيد الفطر"],
-  ["Lailat-ul-Qadr", "ليلة القدر"],
-  ["Hajj", "الحج"],
-  ["At-Tarwiyah", "يوم التروية"],
-  ["Arafa", "يوم عرفة"],
-  ["Eid-ul-Adha", "عيد الأضحي"],
-  ["1st Tashriq Days", "أول أيام التشريق"],
-  ["2nd Tashriq Days", "ثاني أيام التشريق"],
-  ["3rd Tashriq Days", "ثالث أيام التشريق"],
-  ["Ashura", "يوم عاشوراء"],
-  ["Mawlid al-Nabi", "مولد النبي (ص)"],
-  ["Beginning of the holy months", "بداية الأشهر الحرم"],
-  ["End of the holy months", "نهاية الأشهر الحرم"],
-  ["Lailat-ul-Ragha'ib", "ليلة الرغائب"],
-  [
-    "Urs of Mawlana Shaykh Nazim al-Haqqani (ق)",
-    "عرس مولانا الشيخ ناظم الحقاني (ق)",
-  ],
-  [
-    "Birth of Sayyidina `Ali ibn Abi Talib (ر)",
-    "ميلاد سيدنا علي بن أبي طالب (ر)",
-  ],
-  ["Urs of Sayyidina Jafar as-Sadiq (ق)", "عرس سيدنا جعفر الصادق (ق)"],
-  ["Urs of Zaynab bint Ali (ر)", "عرس السيدة زينب بنت علي (ر)"],
-  ["Birth of Sayyidina Husayn ibn `Ali (ر)", "مولد سيدنا الحسين بن علي (ر)"],
-  ["Birth of Sayyidina Abbas ibn `Ali (ر)", "مولد سيدنا العباس بن علي (ر)"],
-  ["Birth of Sayyidina `Ali ibn Husayn (ر)", "مولد سيدنا علي بن الحسين (ر)"],
-  ["Urs of Imam Shamil al-Daghestani (ق)", "عرس الإمام شامل الداغستاني (ق)"],
-  ["Birth of Sayyidina Qasim ibn Hasan (ر)", "مولد سيدنا القاسم بن الحسن (ر)"],
-  [
-    "Birth of Sayyidina Ali Akbar ibn Husayn (ر)",
-    "مولد سيدنا علي الأكبر بن الحسين (ر)",
-  ],
-  [
-    "Urs of Sayyidina Abu Yazid al-Bistami (ق)",
-    "عرس سيدنا أبو يزيد البسطامي (ق)",
-  ],
-  ["Urs of Muhammad Usman Damani", "عرس محمد عثمان داماني"],
-]);
 
 // page_btn_id => page_id
 const page_btn = new Map([
@@ -157,7 +38,10 @@ const page_btn = new Map([
 ]);
 
 // settings_switch_id => action_function
-const settings_switches = new Map([["langSwitch", set_lang]]);
+const settings_switches = new Map([
+  ["langSwitch", set_lang],
+  ["updateLocationSwitch", update_location],
+]);
 
 const months = [
   "January",
@@ -178,7 +62,7 @@ const prayers = new Map([
   [
     1,
     {
-      name: "Fajr",
+      name: "Lastthird",
       s_time: "",
       time: {
         hr: 0,
@@ -189,7 +73,7 @@ const prayers = new Map([
   [
     2,
     {
-      name: "Sunrise",
+      name: "Imsak",
       s_time: "",
       time: {
         hr: 0,
@@ -200,7 +84,7 @@ const prayers = new Map([
   [
     3,
     {
-      name: "Dhuhr",
+      name: "Fajr",
       s_time: "",
       time: {
         hr: 0,
@@ -211,7 +95,7 @@ const prayers = new Map([
   [
     4,
     {
-      name: "Asr",
+      name: "Sunrise",
       s_time: "",
       time: {
         hr: 0,
@@ -222,7 +106,7 @@ const prayers = new Map([
   [
     5,
     {
-      name: "Maghrib",
+      name: "Dhuhr",
       s_time: "",
       time: {
         hr: 0,
@@ -233,7 +117,7 @@ const prayers = new Map([
   [
     6,
     {
-      name: "Isha",
+      name: "Asr",
       s_time: "",
       time: {
         hr: 0,
@@ -244,49 +128,90 @@ const prayers = new Map([
   [
     7,
     {
+      name: "Maghrib",
+      s_time: "",
+      time: {
+        hr: 0,
+        min: 0,
+      },
+    },
+  ],
+  [
+    8,
+    {
+      name: "Isha",
+      s_time: "",
+      time: {
+        hr: 0,
+        min: 0,
+      },
+    },
+  ],
+  [
+    9,
+    {
+      name: "Firstthird",
+      s_time: "",
+      time: {
+        hr: 0,
+        min: 0,
+      },
+    },
+  ],
+  [
+    10,
+    {
       name: "Midnight",
       s_time: "00:00",
       time: {
         hr: 23,
-        min: 59.5,
+        min: 59.9,
       },
     },
   ],
 ]);
 
 /**@param {string} time*/
-const get_time_only = (time) => {
+function get_time_only(time) {
   return time.slice(0, 5);
-};
+}
 
-/**@param {string} time*/
-const get_hr_min = (time) => {
-  const hr = +time.slice(0, 2);
-  const min = +time.slice(3, 5);
-  return [hr, min];
-};
-
-const is_end_of_day = () => {
+function is_end_of_day() {
   return curr_prayer_key >= prayers.size;
-};
+}
 
-const show_bad_internet = () => {
+/**@param {string} text*/
+function translate_text(text) {
+  return lang ? text : en_ar.get(text);
+}
+
+function show_bad_internet() {
   const bad_net_icon = curr_page.querySelector("i.bad-net");
   bad_net_icon.style.display = "block";
 
   setTimeout(() => {
     bad_net_icon.style.display = "none";
   }, 2500);
-};
+}
 
 /**@param {number} n*/
-const leading_zero_num = (n) => {
+function leading_zero_num_en(n) {
   return n.toString().padStart(2, "0");
-};
+}
 
-const saveCoordinates = () => {
+/**@param {number} n*/
+function leading_zero_num_ar(n) {
+  return n.toString().padStart(2, "۰");
+}
+
+/**@param {number} n*/
+function to_arabic_number(n) {
+  return globalNumberFormatter.format(n);
+}
+
+function saveCoordinates() {
   _Storage.save(coords_storage_key, coordinates, "localStorage");
-};
+}
 
 /**@returns {{latitude: number, longitude: number} | null}*/
 function readCoordinates() {
@@ -307,32 +232,45 @@ function saveAddress() {
   _Storage.save(address_storage_key, currentAddress, "localStorage");
 }
 
-/**@returns {string | null}*/
+/**@returns {{display_name: string, short_name: string} | null}*/
 function readAddress() {
   return _Storage.read(address_storage_key, "localStorage");
 }
+
+function reset_app_setting() {
+  _Storage.delete(coords_storage_key, "localStorage");
+  _Storage.delete(address_storage_key, "localStorage");
+  coordinates = null;
+  currentAddress = null;
+}
+
 //===================== Data & tools End ======================
 
 //===================== initialization Start ======================
 // set the initial page
 curr_page = document.getElementById("prayerTimesPage");
-curr_page.style.display = "flex";
+curr_page.classList.add("picked");
 document.getElementById(page_btn.get(curr_page.id)).classList.add("picked");
 // set month calendar page selections
-set_month_year_selections();
+initiate_month_year_selections();
 set_lang();
+app_initiate();
+prepare_table_selections();
+prepare_settings_switches();
+set_update_time_interval();
+prepare_navigation_switches();
+setTimeout(hide_app_loader_screen, 1500);
+requestnotificationAccess();
 
-// app init
-(async () => {
+async function app_initiate() {
   try {
-    coordinates = readCoordinates();
-
     if (!coordinates) {
       coordinates = await fetch_geolocation();
       saveCoordinates();
     }
 
     const { latitude, longitude } = coordinates;
+
     // get data from api
     const data = await fetch_prayers_times(latitude, longitude);
 
@@ -345,43 +283,36 @@ set_lang();
       set_next_prayer(next_prayer_key);
 
       // Month Calendar Page
-      set_month_calendar(data);
-
-      // notification access request to the user
-      document.addEventListener(
-        "click",
-        (e) => {
-          if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-          }
-        },
-        { once: true }
-      );
+      build_month_calendar(data);
     } else {
-      show_bad_internet();
+      throw new Error("Faild To Get The Prayers Times 🟥");
     }
 
-    currentAddress = readAddress();
-
-    if (!currentAddress) {
+    if (currentAddress) {
+      set_location();
+    } else {
       currentAddress = await fetch_address(latitude, longitude);
+      if (!currentAddress) {
+        throw new Error("Faild To Get Your Address 🟥");
+      }
+      set_location();
       saveAddress();
     }
-
-    // add the location
-    const address_ele = document.getElementById("address");
-    address_ele.textContent = currentAddress ?? "???";
+    return true;
   } catch (error) {
-    show_bad_internet();
+    // show_bad_internet();
     console.error(error);
+    return false;
   }
-})();
+}
+
 //====================== initialization End =======================
 
-//========================= Functions Start =========================
-
 function set_lang() {
+  /**@type {HTMLElement[]} */
   const all_txt = document.querySelectorAll("[data-en]");
+  /**@type {HTMLElement[]} */
+  const all_nums = document.querySelectorAll("[data-num]");
   const logo = document.querySelector(".logo > .txt");
   const _switch = document.getElementById("langSwitch");
 
@@ -390,28 +321,128 @@ function set_lang() {
     _switch.classList.add("on");
     document.body.classList.add("ar");
     logo.classList.add("ar");
+    globalNumberFormatter = new Intl.NumberFormat("AR-EG", {
+      useGrouping: false,
+    });
 
+    // set text
     all_txt.forEach((ele) => {
       const en_txt = ele.dataset.en;
       ele.textContent = en_ar.get(en_txt);
     });
-    saveLang(true);
+
+    // set numbers
+    all_nums.forEach((ele) => {
+      ele.textContent = leading_zero_num_ar(to_arabic_number(+ele.dataset.num));
+    });
   } else {
     lang = true;
     _switch.classList.remove("on");
     document.body.classList.remove("ar");
     logo.classList.remove("ar");
+    globalNumberFormatter = new Intl.NumberFormat("EN-US", {
+      useGrouping: false,
+    });
 
     all_txt.forEach((ele) => {
       const en_txt = ele.dataset.en;
       ele.textContent = en_txt;
     });
-    saveLang(false);
+
+    // set numbers
+    all_nums.forEach((ele) => {
+      ele.textContent = leading_zero_num_en(+ele.dataset.num);
+    });
   }
+  saveLang(!lang);
+}
+
+function set_location() {
+  // add the location
+  const main_page_address_ele = document.getElementById("mainPageAddress");
+  const settings_page_address_ele =
+    document.getElementById("setttingsLocation");
+  main_page_address_ele.textContent = currentAddress.short_name ?? "- - -";
+  settings_page_address_ele.textContent =
+    currentAddress.display_name ?? "- - -";
+}
+
+function hide_app_loader_screen() {
+  /**@type {HTMLDivElement}*/
+  const appLoaderScreen = document.getElementById("appLoaderScreen");
+  /**@type {HTMLElement}*/
+  const header = document.querySelector("header");
+
+  // shrink the loading screen to free space to the logo
+  appLoaderScreen.classList.add("shrink");
+  // move logo to the top of the screen
+  header.classList.remove("loading");
+
+  setTimeout(() => {
+    // fade-out the loading screen
+    appLoaderScreen.classList.add("fade-out");
+
+    setTimeout(() => {
+      // remove the loading screen and the header spinner
+      appLoaderScreen.remove();
+      header.querySelector(".spinner").remove();
+    }, 2000);
+  }, 700);
+}
+
+/**
+ * activate or stop the loading state
+ * @param {"add" | "remove"} action
+ */
+function location_loading(action) {
+  /**@type {HTMLLegendElement} */
+  const locationLegend = document.getElementById("locationLegend");
+  /**@type {HTMLButtonElement} */
+  const updateLocationSwitch = document.getElementById("updateLocationSwitch");
+  locationLegend.classList[action]("loading");
+  updateLocationSwitch.disabled = action === "add";
+}
+
+/**@param {boolean} success*/
+function location_fetch_result(success) {
+  /**@type {HTMLLegendElement} */
+  const locationLegend = document.getElementById("locationLegend");
+  /**@type {HTMLParagraphElement} */
+  const locationUpdateMsg = document.getElementById("locationUpdateMsg");
+  const result = success ? "success" : "faild";
+  locationLegend.classList.add(result);
+  const english_msg = success
+    ? "Location Updated Successfully"
+    : "Location Updated Successfully";
+  locationUpdateMsg.dataset.en = english_msg;
+  const potentially_translated_msg = translate_text(english_msg);
+  locationUpdateMsg.textContent = potentially_translated_msg;
+  locationUpdateMsg.classList.add("show");
+  setTimeout(() => {
+    locationLegend.classList.remove(result);
+    locationUpdateMsg.classList.remove("show");
+  }, 5000);
+}
+
+async function update_location() {
+  // remove any previous states
+  /**@type {HTMLLegendElement} */
+  const locationLegend = document.getElementById("locationLegend");
+  /**@type {HTMLParagraphElement} */
+  const locationUpdateMsg = document.getElementById("locationUpdateMsg");
+  locationLegend.classList.remove("success", "faild");
+  locationUpdateMsg.classList.remove("show");
+  // start loading
+  location_loading("add");
+  reset_app_setting();
+  set_month_year_selections_to_current();
+  const update_result = await app_initiate();
+  location_loading("remove");
+  location_fetch_result(update_result);
 }
 
 //---------- prayer Times Page ----------
-const update_dates_times = async () => {
+async function update_dates_times() {
   // use this function to update the (dates & times) at the end of the day
   // get data from api
   const data = await fetch_prayers_times(
@@ -427,7 +458,7 @@ const update_dates_times = async () => {
   } else {
     show_bad_internet();
   }
-};
+}
 
 // set dates & times
 function set_times_dates(_today) {
@@ -435,72 +466,122 @@ function set_times_dates(_today) {
   const hijri = _today.date.hijri;
   const timings = _today.timings;
 
-  // save_times except midnight
+  /**@param {string} time*/
+  function get_hr_min(time) {
+    const hr = +time.slice(0, 2);
+    const min = +time.slice(3, 5);
+    return [hr, min];
+  }
+
+  // weekday
+  /**@type {HTMLDivElement}*/
+  const today_name = document.getElementById("today");
+  const weekday = gregorian.weekday.en;
+  today_name.dataset.en = weekday; // save the english word
+
+  // dates
+  /**@type {HTMLDivElement}*/
+  const h_month_ele = document.querySelector(".month > .hijri");
+  /**@type {HTMLDivElement}*/
+  const g_month_ele = document.querySelector(".month > .melady");
+  const h_month_name = hijri.month.en;
+  const g_month_name = gregorian.month.en;
+  g_month_ele.dataset.en = g_month_name;
+  h_month_ele.dataset.en = h_month_name;
+
+  const h_day_num = hijri.day;
+  const g_day_num = gregorian.day;
+  const h_year_num = hijri.year;
+  const g_year_num = gregorian.year;
+
+  /**@type {HTMLDivElement}*/
+  const h_m_y_ele = document.getElementById("d-m-y");
+  /**@type {HTMLDivElement}*/
+  const h_day_ele = h_m_y_ele.querySelector(".day > .hijri");
+  /**@type {HTMLDivElement}*/
+  const g_day_ele = h_m_y_ele.querySelector(".day > .melady");
+  /**@type {HTMLDivElement}*/
+  const h_year_ele = h_m_y_ele.querySelector(".year > .hijri");
+  /**@type {HTMLDivElement}*/
+  const g_year_ele = h_m_y_ele.querySelector(".year > .melady");
+
+  // save the value in data-num attribute
+  h_day_ele.dataset.num = h_day_num;
+  g_day_ele.dataset.num = g_day_num;
+  h_year_ele.dataset.num = h_year_num;
+  g_year_ele.dataset.num = g_year_num;
+
+  if (lang) {
+    today_name.textContent = weekday;
+    h_month_ele.textContent = h_month_name;
+    g_month_ele.textContent = g_month_name;
+
+    h_day_ele.textContent = h_day_num;
+    g_day_ele.textContent = g_day_num;
+    h_year_ele.textContent = h_year_num;
+    g_year_ele.textContent = g_year_num;
+  } else {
+    today_name.textContent = en_ar.get(weekday);
+    h_month_ele.textContent = en_ar.get(h_month_name);
+    g_month_ele.textContent = en_ar.get(g_month_name);
+
+    h_day_ele.textContent = leading_zero_num_ar(to_arabic_number(h_day_num));
+    g_day_ele.textContent = leading_zero_num_ar(to_arabic_number(g_day_num));
+    h_year_ele.textContent = to_arabic_number(h_year_num);
+    g_year_ele.textContent = to_arabic_number(g_year_num);
+  }
+
+  /**@type {HTMLDivElement}*/
+  const prayers_times_ele = document.getElementById("prayersTimes");
+
+  // save_times except midnight (ignore the midnight it's not a prayer)
   for (let i = 1, len = prayers.size; i < len; ++i) {
+    // save data in the map
     const prayer = prayers.get(i);
     const time = timings[`${prayer.name}`];
     const [hr, min] = get_hr_min(time);
     prayer.s_time = get_time_only(time);
     prayer.time.hr = hr;
     prayer.time.min = min;
+    // update DOM
+    const prayer_time_ele = prayers_times_ele.querySelector(
+      `.${prayer.name.toLowerCase()} > .time`
+    );
+    const prayer_time_hr_ele = prayer_time_ele.querySelector(".hr");
+    const prayer_time_min_ele = prayer_time_ele.querySelector(".min");
+    // save the value in data-num attribute
+    prayer_time_hr_ele.dataset.num = hr;
+    prayer_time_min_ele.dataset.num = min;
+    // print the values
+    if (lang) {
+      prayer_time_hr_ele.textContent = leading_zero_num_en(hr);
+      prayer_time_min_ele.textContent = leading_zero_num_en(min);
+    } else {
+      prayer_time_hr_ele.textContent = leading_zero_num_ar(
+        to_arabic_number(hr)
+      );
+      prayer_time_min_ele.textContent = leading_zero_num_ar(
+        to_arabic_number(min)
+      );
+    }
   }
 
-  // weekday
-  const today_name = document.getElementById("today");
-  const weekday = gregorian.weekday.en;
-  today_name.dataset.en = weekday; // save the english word
-
-  // dates
-  const h_month = document.querySelector(".month > .hijri");
-  const g_month = document.querySelector(".month > .melady");
-  const h_month_name = hijri.month.en;
-  const g_month_name = gregorian.month.en;
-  g_month.dataset.en = g_month_name;
-  h_month.dataset.en = h_month_name;
-
+  // set the midnight time
+  const midnight_time_ele =
+    prayers_times_ele.querySelector(`.midnight > .time`);
+  const midnight_time_hr_ele = midnight_time_ele.querySelector(".hr");
+  const midnight_time_min_ele = midnight_time_ele.querySelector(".min");
+  // save the value in data-num attribute
+  midnight_time_hr_ele.dataset.num = 0;
+  midnight_time_min_ele.dataset.num = 0;
+  // print the values
   if (lang) {
-    today_name.textContent = weekday;
-    h_month.textContent = h_month_name;
-    g_month.textContent = g_month_name;
+    midnight_time_hr_ele.textContent = "00";
+    midnight_time_min_ele.textContent = "00";
   } else {
-    today_name.textContent = en_ar.get(weekday);
-    h_month.textContent = en_ar.get(h_month_name);
-    g_month.textContent = en_ar.get(g_month_name);
+    midnight_time_hr_ele.textContent = "۰۰";
+    midnight_time_min_ele.textContent = "۰۰";
   }
-
-  document.querySelector(".day > .hijri").textContent = hijri.day;
-  document.querySelector(".day > .melady").textContent = gregorian.day;
-  document.querySelector(".year > .hijri").textContent = hijri.year;
-  document.querySelector(".year > .melady").textContent = gregorian.year;
-
-  // times
-  document.querySelector(".prayers > .fajr > .time").textContent = `${
-    prayers.get(1).s_time
-  }`;
-
-  document.querySelector(".prayers > .sunrise > .time").textContent = `${
-    prayers.get(2).s_time
-  }`;
-
-  document.querySelector(".prayers > .dhuhr > .time").textContent = `${
-    prayers.get(3).s_time
-  }`;
-
-  document.querySelector(".prayers > .asr > .time").textContent = `${
-    prayers.get(4).s_time
-  }`;
-
-  document.querySelector(".prayers > .maghrib > .time").textContent = `${
-    prayers.get(5).s_time
-  }`;
-
-  document.querySelector(".prayers > .isha > .time").textContent = `${
-    prayers.get(6).s_time
-  }`;
-
-  document.querySelector(".prayers > .midnight > .time").textContent = `${
-    prayers.get(7).s_time
-  }`;
 }
 
 // prayer counter down
@@ -511,9 +592,12 @@ function set_counter_down(key) {
   const min = curr_prayer_time.min;
   untill.setHours(hr, min, 0, 0);
 
-  const h = document.querySelector(".counter-down > .hr");
-  const m = document.querySelector(".counter-down > .min");
-  const s = document.querySelector(".counter-down > .sec");
+  /**@type {HTMLDivElement}*/
+  const hr_ele = document.querySelector(".counter-down > .hr");
+  /**@type {HTMLDivElement}*/
+  const min_ele = document.querySelector(".counter-down > .min");
+  /**@type {HTMLDivElement}*/
+  const sec_ele = document.querySelector(".counter-down > .sec");
 
   const ms_hr = 1000 * 60 * 60;
   const ms_min = 1000 * 60;
@@ -524,26 +608,37 @@ function set_counter_down(key) {
     const now = Date.now();
     const diff = untill - now;
 
-    const hrs = Math.floor(diff / ms_hr);
-    const mins = Math.floor((diff % ms_hr) / ms_min);
-    const secs = Math.floor((diff % ms_min) / ms_sec);
+    const hrs = (diff / ms_hr) >>> 0;
+    const mins = ((diff % ms_hr) / ms_min) >>> 0;
+    const secs = ((diff % ms_min) / ms_sec) >>> 0;
 
-    h.textContent = leading_zero_num(hrs);
-    m.textContent = leading_zero_num(mins);
-    s.textContent = leading_zero_num(secs);
+    // save the value in the data-num attribute
+    hr_ele.dataset.num = hrs;
+    min_ele.dataset.num = mins;
+    sec_ele.dataset.num = secs;
+
+    if (lang) {
+      hr_ele.textContent = leading_zero_num_en(hrs);
+      min_ele.textContent = leading_zero_num_en(mins);
+      sec_ele.textContent = leading_zero_num_en(secs);
+    } else {
+      hr_ele.textContent = leading_zero_num_ar(to_arabic_number(hrs));
+      min_ele.textContent = leading_zero_num_ar(to_arabic_number(mins));
+      sec_ele.textContent = leading_zero_num_ar(to_arabic_number(secs));
+    }
 
     if (diff <= 0) {
       clearInterval(intervId);
       let athan_time_out = 60000;
 
-      h.textContent = "00";
-      m.textContent = "00";
-      s.textContent = "00";
+      hr_ele.textContent = lang ? "00" : "۰۰";
+      min_ele.textContent = lang ? "00" : "۰۰";
+      sec_ele.textContent = lang ? "00" : "۰۰";
 
       const counter_down = document.querySelector(
         ".times > .next-prayer > .counter-down"
       );
-      counter_down.classList.add("blink");
+      counter_down.classList.add("pulse");
 
       // show athan notification
       if (Notification.permission === "granted") {
@@ -555,7 +650,7 @@ function set_counter_down(key) {
       }
 
       setTimeout(() => {
-        counter_down.classList.remove("blink");
+        counter_down.classList.remove("pulse");
         if (is_end_of_day()) {
           update_dates_times();
         } else {
@@ -566,8 +661,10 @@ function set_counter_down(key) {
   }, 1000);
 }
 
-// get next prayer key
-// (init) parameter to check if at first load
+/**
+ * get next prayer key
+ * @param {boolean} init parameter to check if at first load
+ */
 function get_next_prayer_key(init = true) {
   if (!init) return curr_prayer_key + 1;
 
@@ -603,29 +700,35 @@ function get_next_prayer_key(init = true) {
   return key;
 }
 
+/**@param {number} key*/
 function set_next_prayer(key) {
-  const prayers_list = document.querySelectorAll(".times > .prayers > .prayer");
+  /**@type {HTMLDivElement}*/
+  const prayer_times_ele = document.getElementById("prayersTimes");
 
-  if (curr_prayer_key)
-    prayers_list[curr_prayer_key - 1].classList.remove("picked");
+  if (curr_prayer_key) {
+    const curr_prayer_name = prayers.get(curr_prayer_key).name.toLowerCase();
+    // remove the picked class from the previous prayer
+    prayer_times_ele
+      .querySelector(`.${curr_prayer_name}`)
+      .classList.remove("picked");
+  }
+  const next_prayer_name = prayers.get(key).name;
+  // add the picked class to the next prayer
+  prayer_times_ele
+    .querySelector(`.${next_prayer_name.toLowerCase()}`)
+    .classList.add("picked");
 
-  prayers_list[key - 1].classList.add("picked");
-
+  /**@type {HTMLDivElement} */
   const prayer_name = document.querySelector(
     ".times > .next-prayer > .prayer-name"
   );
-  const rem_time = document.querySelector(".times > .next-prayer > .txt");
 
-  const name = prayers.get(key).name;
-  const rem_time_txt = rem_time.dataset.en;
-  prayer_name.dataset.en = name;
+  prayer_name.dataset.en = next_prayer_name;
 
   if (lang) {
-    prayer_name.textContent = name;
-    rem_time.textContent = rem_time_txt;
+    prayer_name.textContent = next_prayer_name;
   } else {
-    prayer_name.textContent = en_ar.get(name);
-    rem_time.textContent = en_ar.get(rem_time_txt);
+    prayer_name.textContent = en_ar.get(next_prayer_name);
   }
 
   set_counter_down(key);
@@ -638,38 +741,37 @@ function get_prayer_name(key) {
 }
 
 //---------- Month Calendar Page functions ----------
-function set_month_year_selections() {
+function set_month_year_selections_to_current() {
+  const month_sel = document.getElementById("t_sel_month");
+  const year_sel = document.getElementById("t_sel_year");
+  const now = new Date();
+  // select the current month & year
+  month_sel.value = now.getMonth() + 1;
+  year_sel.value = now.getFullYear();
+}
+
+function initiate_month_year_selections() {
+  // should call it before setLang() function
   const month_sel = document.getElementById("t_sel_month");
   const year_sel = document.getElementById("t_sel_year");
   const now = new Date();
 
-  if (lang) {
-    months.forEach((m, i) => {
-      month_sel.innerHTML += `<option value="${
-        i + 1
-      }" data-en="${m}">${m}</option>`;
-    });
-  } else {
-    months.forEach((m, i) => {
-      month_sel.innerHTML += `<option value="${
-        i + 1
-      }" data-en="${m}">${en_ar.get(m)}</option>`;
-    });
-  }
+  months.forEach((m, i) => {
+    month_sel.innerHTML += `<option value="${
+      i + 1
+    }" data-en="${m}">${m}</option>`;
+  });
 
   for (let y = 1980; y < 2051; ++y) {
     year_sel.innerHTML += `<option value="${y}">${y}</option>`;
   }
+
   // select the current month & year
-  month_sel.querySelector(
-    `option[value="${now.getMonth() + 1}"]`
-  ).selected = true;
-  year_sel.querySelector(
-    `option[value="${now.getFullYear()}"]`
-  ).selected = true;
+  month_sel.value = now.getMonth() + 1;
+  year_sel.value = now.getFullYear();
 }
 
-function set_month_calendar(data) {
+function build_month_calendar(data) {
   const $days = data.length; // month days count
   const now = new Date();
   const this_day = now.getDate();
@@ -680,7 +782,7 @@ function set_month_calendar(data) {
   // ====================================================
   const hijri_month_1st = data[0].date.hijri.month.en;
   const hijri_month_2nd = data[$days - 1].date.hijri.month.en;
-  const hijri_month_1st_n = data[0].date.hijri.month.number;
+  // const hijri_month_1st_n = data[0].date.hijri.month.number;
   const hijri_year_1st = data[0].date.hijri.year;
   const hijri_year_2nd = data[$days - 1].date.hijri.year;
 
@@ -903,7 +1005,7 @@ function set_month_calendar(data) {
 }
 
 async function update_month_calendar(month, year) {
-  const loading = document.getElementById("loading");
+  const loading = document.getElementById("tableSpinner");
   loading.classList.add("run");
   const data = await fetch_prayers_times(
     coordinates.latitude,
@@ -913,44 +1015,37 @@ async function update_month_calendar(month, year) {
   );
   loading.classList.remove("run");
   if (data) {
-    set_month_calendar(data);
+    build_month_calendar(data);
     return true;
   }
   show_bad_internet();
   return false;
 }
 
-//========================= Functions End =========================
-
 //========================= Events Start =========================
 // Pages Btns
-page_btn.forEach((btn_id, page_id, map) => {
-  const page = document.getElementById(page_id);
-  const btn = document.getElementById(btn_id);
+function prepare_navigation_switches() {
+  page_btn.forEach((btn_id, page_id, map) => {
+    const page = document.getElementById(page_id);
+    const btn = document.getElementById(btn_id);
 
-  const set_page = () => {
-    if (page !== curr_page) {
-      page.style.display = "flex";
-      curr_page.style.display = "none";
-      btn.classList.add("picked");
-      document.getElementById(map.get(curr_page.id)).classList.remove("picked");
-      curr_page = page;
-    }
-  };
+    const set_page = () => {
+      if (page !== curr_page) {
+        page.classList.add("picked");
+        curr_page.classList.remove("picked");
+        btn.classList.add("picked");
+        document
+          .getElementById(map.get(curr_page.id))
+          .classList.remove("picked");
+        curr_page = page;
+      }
+    };
 
-  btn.addEventListener("click", () => {
-    set_page();
+    btn.addEventListener("click", set_page);
   });
+}
 
-  btn.addEventListener("keydown", (e) => {
-    if (e.code === "Enter" || e.code === "Space") {
-      set_page();
-    }
-  });
-});
-
-// table selections
-(() => {
+function prepare_table_selections() {
   let prev_month = "";
   let prev_year = "";
   const month_sel_ele = document.getElementById("t_sel_month");
@@ -985,35 +1080,57 @@ page_btn.forEach((btn_id, page_id, map) => {
       }
     });
   });
-})();
+}
 
-// settings switches
-settings_switches.forEach((action_fun, switch_id) => {
-  const _switch = document.getElementById(switch_id);
-
-  _switch.addEventListener("click", action_fun);
-
-  _switch.addEventListener("keydown", (e) => {
-    if (e.code === "Enter" || e.code === "Space") {
-      action_fun();
-    }
+function prepare_settings_switches() {
+  // settings switches click event
+  settings_switches.forEach((action_fun, switch_id) => {
+    const _switch = document.getElementById(switch_id);
+    _switch.addEventListener("click", action_fun);
   });
-});
+}
 //========================== Events End ==========================
 
-/* update time interval start */
-setInterval(() => {
-  const hours = document.querySelector(".clock > .time > .hr");
-  const minutes = document.querySelector(".clock > .time > .min");
-  const seconds = document.querySelector(".clock > .time > .sec");
+function set_update_time_interval() {
+  setInterval(() => {
+    /**@type {HTMLDivElement}*/
+    const hr_ele = document.querySelector(".clock > .time > .hr");
+    /**@type {HTMLDivElement}*/
+    const min_ele = document.querySelector(".clock > .time > .min");
+    /**@type {HTMLDivElement}*/
+    const sec_ele = document.querySelector(".clock > .time > .sec");
 
-  const now = new Date();
-  const hrs = leading_zero_num(now.getHours());
-  const mins = leading_zero_num(now.getMinutes());
-  const secs = leading_zero_num(now.getSeconds());
+    const now = new Date();
+    const hrs = now.getHours();
+    const mins = now.getMinutes();
+    const secs = now.getSeconds();
 
-  hours.textContent = hrs;
-  minutes.textContent = mins;
-  seconds.textContent = secs;
-}, 1000);
-/* update time interval end */
+    // save the value in the data-num attribute
+    hr_ele.dataset.num = hrs;
+    min_ele.dataset.num = mins;
+    sec_ele.dataset.num = secs;
+
+    if (lang) {
+      hr_ele.textContent = leading_zero_num_en(hrs);
+      min_ele.textContent = leading_zero_num_en(mins);
+      sec_ele.textContent = leading_zero_num_en(secs);
+    } else {
+      hr_ele.textContent = leading_zero_num_ar(to_arabic_number(hrs));
+      min_ele.textContent = leading_zero_num_ar(to_arabic_number(mins));
+      sec_ele.textContent = leading_zero_num_ar(to_arabic_number(secs));
+    }
+  }, 1000);
+}
+
+function requestnotificationAccess() {
+  // notification access request to the user
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+    },
+    { once: true }
+  );
+}
