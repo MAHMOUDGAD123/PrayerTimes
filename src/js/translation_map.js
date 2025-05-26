@@ -124,8 +124,30 @@ export const en_ar = new Map([
     "عرس سيدنا أبو يزيد البسطامي (ق)",
   ],
   ["Urs of Muhammad Usman Damani", "عرس محمد عثمان داماني"],
+  ["Birth of Imam Bukhārī (ر)", "مولد الإمام البخاري (ر)"],
+  ["Treaty of Hudaybiyya", "صلح الحديبية"],
+  ["Birth of Muhammad Effendi al-Yaraghi ق", "مولد محمد أفندي الياراغي (ق)"],
+  ["Birth of Sharafuddin ad-Daghestani ق", "مولد شرف الدين الداغستاني (ق)"],
+  ["Birth of Ismail Muhammad ash-Shirwani ق", "مولد إسماعيل محمد الشرواني (ق)"],
+  ["Urs of Khalid al-Baghdadi ق", "عرس خالد البغدادي (ق)"],
+  ["Urs of Ali ar-Ramitani ق", "عرس علي الراميتني (ق)"],
+  ["Urs of Mawlana Shaykh Hisham Kabbani", "عرس مولانا الشيخ هشام قباني"],
   // others
   ["Update", "تحديث"],
-  ["Location Updated Successfully", "تم التحديث الموقع بنجاح"],
+  ["Error", "خطأ"],
+  ["Close", "إغلاق"],
+  ["Location Updated Successfully", "تم تحديث الموقع بنجاح"],
   ["Faild To Update Location", "فشلت عملية تحديث الموقع"],
+  [
+    "Please make sure you are connected to the internet and allow the app to access your location",
+    "من فضلك تأكد من إتصالك بالانترنت والسماح للتطبيق بالوصول الي الموقع",
+  ],
+  [
+    "The app only requires access to your location once, when you first launch it, ",
+    "يحتاج التطبيق منك الوصول إلى الموقع مرة واحدة فقط عند تشغيله لأول مرة، ",
+  ],
+  [
+    "and it won't need access again unless you request a location update from within the app",
+    "ولا يحتاج إلى الوصول مرة أخرى إلا إذا طلبت تحديث الموقع من داخل التطبيق",
+  ],
 ]);

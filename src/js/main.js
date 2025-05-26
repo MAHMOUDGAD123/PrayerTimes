@@ -12,23 +12,26 @@ import { _Storage } from "./storage.js";
 const lang_storage_key = "__prayertimes_lang__";
 const coords_storage_key = "__prayertimes_coords__";
 const address_storage_key = "__prayertimes_adrs__";
+const last_page_storage_key = "__prayertimes_last_page__";
 
 let curr_prayer_key = 0;
 /**@type {HTMLDivElement}*/
 let curr_page = null;
 /**@type {{latitude: number, longitude: number} | null} */
-let coordinates = readCoordinates();
+let coordinates = read_coordinates();
 /**@type {{display_name: string, short_name: string} | null} */
-let currentAddress = readAddress();
+let currentAddress = read_address();
 
 /**@type {Intl.NumberFormat}*/
-let globalNumberFormatter;
+let globalNumberFormatter = new Intl.NumberFormat("AR-EG", {
+  useGrouping: false,
+});
 
 /**
  * - English --> true
  * - Arabic ---> false
  */
-let lang = readLang();
+let isEnglish = read_lang();
 
 // page_btn_id => page_id
 const page_btn = new Map([
@@ -58,7 +61,7 @@ const months = [
   "December",
 ];
 
-const prayers = new Map([
+const prayers_and_times = new Map([
   [
     1,
     {
@@ -162,7 +165,7 @@ const prayers = new Map([
     10,
     {
       name: "Midnight",
-      s_time: "00:00",
+      s_time: "23:59",
       time: {
         hr: 23,
         min: 59.9,
@@ -177,21 +180,12 @@ function get_time_only(time) {
 }
 
 function is_end_of_day() {
-  return curr_prayer_key >= prayers.size;
+  return curr_prayer_key >= prayers_and_times.size;
 }
 
 /**@param {string} text*/
 function translate_text(text) {
-  return lang ? text : en_ar.get(text);
-}
-
-function show_bad_internet() {
-  const bad_net_icon = curr_page.querySelector("i.bad-net");
-  bad_net_icon.style.display = "block";
-
-  setTimeout(() => {
-    bad_net_icon.style.display = "none";
-  }, 2500);
+  return isEnglish ? text : en_ar.get(text);
 }
 
 /**@param {number} n*/
@@ -209,64 +203,75 @@ function to_arabic_number(n) {
   return globalNumberFormatter.format(n);
 }
 
-function saveCoordinates() {
+function save_coordinates() {
   _Storage.save(coords_storage_key, coordinates, "localStorage");
 }
 
 /**@returns {{latitude: number, longitude: number} | null}*/
-function readCoordinates() {
+function read_coordinates() {
   return _Storage.read(coords_storage_key, "localStorage");
 }
 
-/**@param {boolean} lang*/
-function saveLang(lang) {
-  _Storage.save(lang_storage_key, lang, "localStorage");
+function save_lang() {
+  _Storage.save(lang_storage_key, !!isEnglish, "localStorage");
 }
 
 /**@returns {boolean | null}*/
-function readLang() {
+function read_lang() {
   return _Storage.read(lang_storage_key, "localStorage");
 }
 
-function saveAddress() {
+function save_address() {
   _Storage.save(address_storage_key, currentAddress, "localStorage");
 }
 
 /**@returns {{display_name: string, short_name: string} | null}*/
-function readAddress() {
+function read_address() {
   return _Storage.read(address_storage_key, "localStorage");
 }
 
-function reset_app_setting() {
-  _Storage.delete(coords_storage_key, "localStorage");
-  _Storage.delete(address_storage_key, "localStorage");
-  coordinates = null;
-  currentAddress = null;
+/**@param {string} page_id*/
+function save_last_page(page_id) {
+  _Storage.save(last_page_storage_key, page_id, "localStorage");
+}
+
+/**@returns {string | null}*/
+function read_last_page() {
+  return _Storage.read(last_page_storage_key, "localStorage");
 }
 
 //===================== Data & tools End ======================
 
 //===================== initialization Start ======================
 // set the initial page
-curr_page = document.getElementById("prayerTimesPage");
+curr_page = document.getElementById(read_last_page() ?? "prayerTimesPage");
 curr_page.classList.add("picked");
 document.getElementById(page_btn.get(curr_page.id)).classList.add("picked");
 // set month calendar page selections
 initiate_month_year_selections();
 set_lang();
-app_initiate();
-prepare_table_selections();
-prepare_settings_switches();
-set_update_time_interval();
-prepare_navigation_switches();
-setTimeout(hide_app_loader_screen, 1500);
-requestnotificationAccess();
 
-async function app_initiate() {
+(async () => {
+  if (await app_initiate()) {
+    prepare_table_selections();
+    prepare_settings_switches();
+    set_update_time_interval();
+    prepare_navigation_switches();
+    hide_app_loader_screen();
+    request_notification_access();
+  } else {
+    show_app_error_screen();
+  }
+})();
+
+/**
+ * @param {boolean} update force update
+ */
+async function app_initiate(update = false) {
   try {
-    if (!coordinates) {
+    if (update || !coordinates) {
       coordinates = await fetch_geolocation();
-      saveCoordinates();
+      save_coordinates();
     }
 
     const { latitude, longitude } = coordinates;
@@ -296,11 +301,10 @@ async function app_initiate() {
         throw new Error("Faild To Get Your Address 🟥");
       }
       set_location();
-      saveAddress();
+      save_address();
     }
     return true;
   } catch (error) {
-    // show_bad_internet();
     console.error(error);
     return false;
   }
@@ -316,14 +320,12 @@ function set_lang() {
   const logo = document.querySelector(".logo > .txt");
   const _switch = document.getElementById("langSwitch");
 
-  if (lang) {
-    lang = false;
+  // toggle the language
+  // if isEnglish is true then switch to Arabic
+  if (isEnglish) {
     _switch.classList.add("on");
     document.body.classList.add("ar");
     logo.classList.add("ar");
-    globalNumberFormatter = new Intl.NumberFormat("AR-EG", {
-      useGrouping: false,
-    });
 
     // set text
     all_txt.forEach((ele) => {
@@ -333,16 +335,14 @@ function set_lang() {
 
     // set numbers
     all_nums.forEach((ele) => {
-      ele.textContent = leading_zero_num_ar(to_arabic_number(+ele.dataset.num));
+      const no_leading_zero = ele.hasAttribute("data-no-leading-zero");
+      const num = to_arabic_number(+ele.dataset.num);
+      ele.textContent = no_leading_zero ? num : leading_zero_num_ar(num);
     });
   } else {
-    lang = true;
     _switch.classList.remove("on");
     document.body.classList.remove("ar");
     logo.classList.remove("ar");
-    globalNumberFormatter = new Intl.NumberFormat("EN-US", {
-      useGrouping: false,
-    });
 
     all_txt.forEach((ele) => {
       const en_txt = ele.dataset.en;
@@ -351,10 +351,14 @@ function set_lang() {
 
     // set numbers
     all_nums.forEach((ele) => {
-      ele.textContent = leading_zero_num_en(+ele.dataset.num);
+      const no_leading_zero = ele.hasAttribute("data-no-leading-zero");
+      const num = +ele.dataset.num;
+      ele.textContent = no_leading_zero ? num : leading_zero_num_en(num);
     });
   }
-  saveLang(!lang);
+  // save the language state and toggle it
+  save_lang();
+  isEnglish = !isEnglish;
 }
 
 function set_location() {
@@ -368,43 +372,83 @@ function set_location() {
 }
 
 function hide_app_loader_screen() {
-  /**@type {HTMLDivElement}*/
-  const appLoaderScreen = document.getElementById("appLoaderScreen");
-  /**@type {HTMLElement}*/
-  const header = document.querySelector("header");
-
-  // shrink the loading screen to free space to the logo
-  appLoaderScreen.classList.add("shrink");
-  // move logo to the top of the screen
-  header.classList.remove("loading");
-
   setTimeout(() => {
-    // fade-out the loading screen
-    appLoaderScreen.classList.add("fade-out");
+    /**@type {HTMLDivElement}*/
+    const appLoaderScreen = document.getElementById("appLoaderScreen");
+    /**@type {HTMLElement}*/
+    const header = document.querySelector("header");
+
+    // shrink the loading screen to free space to the logo
+    appLoaderScreen.classList.add("shrink");
+    // move logo to the top of the screen
+    header.classList.remove("loading");
+
+    setTimeout(() => {
+      // fade-out the loading screen
+      appLoaderScreen.classList.add("fade-out");
+
+      setTimeout(() => {
+        // remove the loading screen and the header spinner
+        appLoaderScreen.remove();
+        header.querySelector(".spinner").remove();
+      }, 2000);
+    }, 700);
+  }, 1500);
+}
+
+function show_app_error_screen() {
+  setTimeout(() => {
+    /**@type {HTMLDivElement}*/
+    const appLoaderScreen = document.getElementById("appLoaderScreen");
+    /**@type {HTMLElement}*/
+    const header = document.querySelector("header");
+    /**@type {HTMLDivElement}*/
+    const appErrorScreen = document.getElementById("appErrorScreen");
+
+    // shrink the loading screen to free space to the logo
+    appLoaderScreen.classList.add("shrink");
+    // move logo to the top of the screen
+    header.classList.remove("loading");
+    // show error screen
+    appErrorScreen.showPopover();
 
     setTimeout(() => {
       // remove the loading screen and the header spinner
       appLoaderScreen.remove();
       header.querySelector(".spinner").remove();
-    }, 2000);
-  }, 700);
+    }, 500);
+  }, 1500);
+}
+
+function show_app_fetch_error_popup() {
+  /**@type {HTMLDivElement}*/
+  const appErrorScreen = document.getElementById("appErrorScreen");
+  // show error popup
+  appErrorScreen.showPopover();
 }
 
 /**
  * activate or stop the loading state
  * @param {"add" | "remove"} action
  */
-function location_loading(action) {
+function location_loading_state(action) {
   /**@type {HTMLLegendElement} */
   const locationLegend = document.getElementById("locationLegend");
+  locationLegend.classList[action]("loading");
+}
+
+/**
+ * @param {boolean} enable
+ * @description enable or disable the update location switch
+ */
+function toggle_update_location_switch(enable) {
   /**@type {HTMLButtonElement} */
   const updateLocationSwitch = document.getElementById("updateLocationSwitch");
-  locationLegend.classList[action]("loading");
-  updateLocationSwitch.disabled = action === "add";
+  updateLocationSwitch.disabled = enable;
 }
 
 /**@param {boolean} success*/
-function location_fetch_result(success) {
+function print_location_fetch_result(success) {
   /**@type {HTMLLegendElement} */
   const locationLegend = document.getElementById("locationLegend");
   /**@type {HTMLParagraphElement} */
@@ -413,7 +457,7 @@ function location_fetch_result(success) {
   locationLegend.classList.add(result);
   const english_msg = success
     ? "Location Updated Successfully"
-    : "Location Updated Successfully";
+    : "Faild To Update Location";
   locationUpdateMsg.dataset.en = english_msg;
   const potentially_translated_msg = translate_text(english_msg);
   locationUpdateMsg.textContent = potentially_translated_msg;
@@ -421,6 +465,7 @@ function location_fetch_result(success) {
   setTimeout(() => {
     locationLegend.classList.remove(result);
     locationUpdateMsg.classList.remove("show");
+    toggle_update_location_switch(false);
   }, 5000);
 }
 
@@ -433,12 +478,15 @@ async function update_location() {
   locationLegend.classList.remove("success", "faild");
   locationUpdateMsg.classList.remove("show");
   // start loading
-  location_loading("add");
-  reset_app_setting();
-  set_month_year_selections_to_current();
-  const update_result = await app_initiate();
-  location_loading("remove");
-  location_fetch_result(update_result);
+  toggle_update_location_switch(true);
+  location_loading_state("add");
+  const update_success = await app_initiate(true);
+  if (update_success) {
+    // reset the calendar selections to the current month & year
+    set_month_year_selections_to_current();
+  }
+  print_location_fetch_result(update_success);
+  location_loading_state("remove");
 }
 
 //---------- prayer Times Page ----------
@@ -456,11 +504,19 @@ async function update_dates_times() {
     set_times_dates(_today);
     set_next_prayer(1);
   } else {
-    show_bad_internet();
+    // show_bad_internet();
+    show_app_fetch_error_popup();
   }
 }
 
-// set dates & times
+/**
+ * set dates & times
+ * @param {{
+ * date: { readable: string, timestamp: string, gregorian: { date: string, format: string, day: string, weekday: { en: string }, month: { number: number, en: string }, year: string, designation: { abbreviated: string, expanded: string }, lunarSighting: boolean }, hijri: { date: string, format: string, day: string, weekday: { en: string, ar: string }, month: { number: number, en: string, ar: string, days: number }, year: string, designation: { abbreviated: string, expanded: string }, holidays: string[], adjustedHolidays: string[], method: string } },
+ * meta: { latitude: number, longitude: number, timezone: string, method: { id: number, name: string, params: { Fajr: number, Isha: number }, location: { latitude: number, longitude: number } }, latitudeAdjustmentMethod: string, midnightMode: string, school: string, offset: { Imsak: number, Fajr: number, Sunrise: number, Dhuhr: number, Asr: number, Maghrib: number, Sunset: number, Isha: number, Midnight: number } },
+ * timings: { Fajr: string, Sunrise: string, Dhuhr: string, Asr: string, Sunset: string, Maghrib: string, Isha: string, Imsak: string, Midnight: string, Firstthird: string, Lastthird: string }
+ * }} _today all the data for today
+ */
 function set_times_dates(_today) {
   const gregorian = _today.date.gregorian;
   const hijri = _today.date.hijri;
@@ -511,7 +567,7 @@ function set_times_dates(_today) {
   h_year_ele.dataset.num = h_year_num;
   g_year_ele.dataset.num = g_year_num;
 
-  if (lang) {
+  if (isEnglish) {
     today_name.textContent = weekday;
     h_month_ele.textContent = h_month_name;
     g_month_ele.textContent = g_month_name;
@@ -535,9 +591,9 @@ function set_times_dates(_today) {
   const prayers_times_ele = document.getElementById("prayersTimes");
 
   // save_times except midnight (ignore the midnight it's not a prayer)
-  for (let i = 1, len = prayers.size; i < len; ++i) {
+  for (let i = 1, len = prayers_and_times.size; i < len; ++i) {
     // save data in the map
-    const prayer = prayers.get(i);
+    const prayer = prayers_and_times.get(i);
     const time = timings[`${prayer.name}`];
     const [hr, min] = get_hr_min(time);
     prayer.s_time = get_time_only(time);
@@ -553,7 +609,7 @@ function set_times_dates(_today) {
     prayer_time_hr_ele.dataset.num = hr;
     prayer_time_min_ele.dataset.num = min;
     // print the values
-    if (lang) {
+    if (isEnglish) {
       prayer_time_hr_ele.textContent = leading_zero_num_en(hr);
       prayer_time_min_ele.textContent = leading_zero_num_en(min);
     } else {
@@ -572,22 +628,22 @@ function set_times_dates(_today) {
   const midnight_time_hr_ele = midnight_time_ele.querySelector(".hr");
   const midnight_time_min_ele = midnight_time_ele.querySelector(".min");
   // save the value in data-num attribute
-  midnight_time_hr_ele.dataset.num = 0;
-  midnight_time_min_ele.dataset.num = 0;
+  midnight_time_hr_ele.dataset.num = 23;
+  midnight_time_min_ele.dataset.num = 59;
   // print the values
-  if (lang) {
-    midnight_time_hr_ele.textContent = "00";
-    midnight_time_min_ele.textContent = "00";
+  if (isEnglish) {
+    midnight_time_hr_ele.textContent = "23";
+    midnight_time_min_ele.textContent = "59";
   } else {
-    midnight_time_hr_ele.textContent = "۰۰";
-    midnight_time_min_ele.textContent = "۰۰";
+    midnight_time_hr_ele.textContent = "۲۳";
+    midnight_time_min_ele.textContent = "۵۹";
   }
 }
 
 // prayer counter down
 function set_counter_down(key) {
   const untill = new Date();
-  const curr_prayer_time = prayers.get(key).time;
+  const curr_prayer_time = prayers_and_times.get(key).time;
   const hr = curr_prayer_time.hr;
   const min = curr_prayer_time.min;
   untill.setHours(hr, min, 0, 0);
@@ -608,16 +664,16 @@ function set_counter_down(key) {
     const now = Date.now();
     const diff = untill - now;
 
-    const hrs = (diff / ms_hr) >>> 0;
-    const mins = ((diff % ms_hr) / ms_min) >>> 0;
-    const secs = ((diff % ms_min) / ms_sec) >>> 0;
+    const hrs = Math.floor(diff / ms_hr);
+    const mins = Math.floor((diff % ms_hr) / ms_min);
+    const secs = Math.floor((diff % ms_min) / ms_sec);
 
     // save the value in the data-num attribute
     hr_ele.dataset.num = hrs;
     min_ele.dataset.num = mins;
     sec_ele.dataset.num = secs;
 
-    if (lang) {
+    if (isEnglish) {
       hr_ele.textContent = leading_zero_num_en(hrs);
       min_ele.textContent = leading_zero_num_en(mins);
       sec_ele.textContent = leading_zero_num_en(secs);
@@ -631,9 +687,14 @@ function set_counter_down(key) {
       clearInterval(intervId);
       let athan_time_out = 60000;
 
-      hr_ele.textContent = lang ? "00" : "۰۰";
-      min_ele.textContent = lang ? "00" : "۰۰";
-      sec_ele.textContent = lang ? "00" : "۰۰";
+      // save zero in the data-num attribute
+      hr_ele.dataset.num = 0;
+      min_ele.dataset.num = 0;
+      sec_ele.dataset.num = 0;
+
+      hr_ele.textContent = isEnglish ? "00" : "۰۰";
+      min_ele.textContent = isEnglish ? "00" : "۰۰";
+      sec_ele.textContent = isEnglish ? "00" : "۰۰";
 
       const counter_down = document.querySelector(
         ".times > .next-prayer > .counter-down"
@@ -643,7 +704,11 @@ function set_counter_down(key) {
       // show athan notification
       if (Notification.permission === "granted") {
         try {
-          new Notification(get_prayer_name(key), {
+          const prayer_name = get_prayer_name(key);
+          const notificationTitle = isEnglish
+            ? prayer_name
+            : en_ar.get(prayer_name);
+          new Notification(notificationTitle, {
             icon: "../assets/imgs/logo.png",
           });
         } catch (_) {}
@@ -668,7 +733,7 @@ function set_counter_down(key) {
 function get_next_prayer_key(init = true) {
   if (!init) return curr_prayer_key + 1;
 
-  const entries = [...prayers.entries()];
+  const entries = [...prayers_and_times.entries()];
   let key = 1;
   // get total minutes (hours * 60 + minutes)
   const now_time = new Date();
@@ -700,19 +765,27 @@ function get_next_prayer_key(init = true) {
   return key;
 }
 
+/**
+ * @param {number} key the parayer key
+ * @description get the prayer name by key
+ */
+function get_prayer_name(key) {
+  return prayers_and_times.get(key).name;
+}
+
 /**@param {number} key*/
 function set_next_prayer(key) {
   /**@type {HTMLDivElement}*/
   const prayer_times_ele = document.getElementById("prayersTimes");
 
   if (curr_prayer_key) {
-    const curr_prayer_name = prayers.get(curr_prayer_key).name.toLowerCase();
+    const curr_prayer_name = get_prayer_name(curr_prayer_key).toLowerCase();
     // remove the picked class from the previous prayer
     prayer_times_ele
       .querySelector(`.${curr_prayer_name}`)
       .classList.remove("picked");
   }
-  const next_prayer_name = prayers.get(key).name;
+  const next_prayer_name = get_prayer_name(key);
   // add the picked class to the next prayer
   prayer_times_ele
     .querySelector(`.${next_prayer_name.toLowerCase()}`)
@@ -725,7 +798,7 @@ function set_next_prayer(key) {
 
   prayer_name.dataset.en = next_prayer_name;
 
-  if (lang) {
+  if (isEnglish) {
     prayer_name.textContent = next_prayer_name;
   } else {
     prayer_name.textContent = en_ar.get(next_prayer_name);
@@ -735,42 +808,52 @@ function set_next_prayer(key) {
   curr_prayer_key = key;
 }
 
-function get_prayer_name(key) {
-  const name = prayers.get(key).name;
-  return lang ? name : en_ar.get(name);
-}
-
 //---------- Month Calendar Page functions ----------
 function set_month_year_selections_to_current() {
-  const month_sel = document.getElementById("t_sel_month");
-  const year_sel = document.getElementById("t_sel_year");
+  const month_sel_ele = document.getElementById("t_sel_month");
+  const year_sel_ele = document.getElementById("t_sel_year");
   const now = new Date();
   // select the current month & year
-  month_sel.value = now.getMonth() + 1;
-  year_sel.value = now.getFullYear();
+  month_sel_ele.value = now.getMonth() + 1;
+  year_sel_ele.value = now.getFullYear();
 }
 
 function initiate_month_year_selections() {
   // should call it before setLang() function
-  const month_sel = document.getElementById("t_sel_month");
-  const year_sel = document.getElementById("t_sel_year");
+  const month_sel_ele = document.getElementById("t_sel_month");
+  const year_sel_ele = document.getElementById("t_sel_year");
   const now = new Date();
 
-  months.forEach((m, i) => {
-    month_sel.innerHTML += `<option value="${
-      i + 1
-    }" data-en="${m}">${m}</option>`;
+  // create the selections options
+  months.forEach((month_name, i) => {
+    const option_ele = document.createElement("option");
+    // save the month number
+    option_ele.dataset.en = month_name;
+    option_ele.value = i + 1;
+    month_sel_ele.appendChild(option_ele);
   });
 
-  for (let y = 1980; y < 2051; ++y) {
-    year_sel.innerHTML += `<option value="${y}">${y}</option>`;
+  for (let year = 1980; year < 2051; ++year) {
+    const option_ele = document.createElement("option");
+    // save the year number
+    option_ele.dataset.num = year;
+    option_ele.value = year;
+    year_sel_ele.appendChild(option_ele);
   }
 
   // select the current month & year
-  month_sel.value = now.getMonth() + 1;
-  year_sel.value = now.getFullYear();
+  month_sel_ele.value = now.getMonth() + 1;
+  year_sel_ele.value = now.getFullYear();
 }
 
+/**
+ * this function will build the calendar table
+ * @param {{
+ * date: { readable: string, timestamp: string, gregorian: { date: string, format: string, day: string, weekday: { en: string }, month: { number: number, en: string }, year: string, designation: { abbreviated: string, expanded: string }, lunarSighting: boolean }, hijri: { date: string, format: string, day: string, weekday: { en: string, ar: string }, month: { number: number, en: string, ar: string, days: number }, year: string, designation: { abbreviated: string, expanded: string }, holidays: string[], adjustedHolidays: string[], method: string } },
+ * meta: { latitude: number, longitude: number, timezone: string, method: { id: number, name: string, params: { Fajr: number, Isha: number }, location: { latitude: number, longitude: number } }, latitudeAdjustmentMethod: string, midnightMode: string, school: string, offset: { Imsak: number, Fajr: number, Sunrise: number, Dhuhr: number, Asr: number, Maghrib: number, Sunset: number, Isha: number, Midnight: number } },
+ * timings: { Fajr: string, Sunrise: string, Dhuhr: string, Asr: string, Sunset: string, Maghrib: string, Isha: string, Imsak: string, Midnight: string, Firstthird: string, Lastthird: string }
+ * }[]} data all the api data for the month
+ */
 function build_month_calendar(data) {
   const $days = data.length; // month days count
   const now = new Date();
@@ -786,76 +869,98 @@ function build_month_calendar(data) {
   const hijri_year_1st = data[0].date.hijri.year;
   const hijri_year_2nd = data[$days - 1].date.hijri.year;
 
-  const t_hijri_1st_month = document.querySelector(".t_hijri_1st > .month");
-  const t_hijri_2nd_month = document.querySelector(".t_hijri_2nd > .month");
-  const t_hijri_1st_year = document.querySelector(".t_hijri_1st > .year");
-  const t_hijri_2nd_year = document.querySelector(".t_hijri_2nd > .year");
+  /**@type {HTMLDivElement}*/
+  const t_hijri_1st_month_ele = document.querySelector(".t_hijri_1st > .month");
+  /**@type {HTMLDivElement}*/
+  const t_hijri_2nd_month_ele = document.querySelector(".t_hijri_2nd > .month");
+  /**@type {HTMLDivElement}*/
+  const t_hijri_1st_year_ele = document.querySelector(".t_hijri_1st > .year");
+  /**@type {HTMLDivElement}*/
+  const t_hijri_2nd_year_ele = document.querySelector(".t_hijri_2nd > .year");
 
   // save the month english txt
-  t_hijri_1st_month.dataset.en = hijri_month_1st;
-  t_hijri_2nd_month.dataset.en = hijri_month_2nd;
+  t_hijri_1st_month_ele.dataset.en = hijri_month_1st;
+  t_hijri_2nd_month_ele.dataset.en = hijri_month_2nd;
+  // save the year number
+  t_hijri_1st_year_ele.dataset.num = hijri_year_1st;
+  t_hijri_2nd_year_ele.dataset.num = hijri_year_2nd;
 
-  if (lang) {
-    t_hijri_1st_month.textContent = hijri_month_1st;
-    t_hijri_2nd_month.textContent = hijri_month_2nd;
+  // print the data
+  if (isEnglish) {
+    t_hijri_1st_month_ele.textContent = hijri_month_1st;
+    t_hijri_2nd_month_ele.textContent = hijri_month_2nd;
+    t_hijri_1st_year_ele.textContent = hijri_year_1st;
+    t_hijri_2nd_year_ele.textContent = hijri_year_2nd;
   } else {
-    t_hijri_1st_month.textContent = en_ar.get(hijri_month_1st);
-    t_hijri_2nd_month.textContent = en_ar.get(hijri_month_2nd);
+    t_hijri_1st_month_ele.textContent = en_ar.get(hijri_month_1st);
+    t_hijri_2nd_month_ele.textContent = en_ar.get(hijri_month_2nd);
+    t_hijri_1st_year_ele.textContent = to_arabic_number(hijri_year_1st);
+    t_hijri_2nd_year_ele.textContent = to_arabic_number(hijri_year_2nd);
   }
-  t_hijri_1st_year.textContent = hijri_year_1st;
-  t_hijri_2nd_year.textContent = hijri_year_2nd;
+
   // ====================================================
 
   // create table
   // ====================================================
   const tbody = document.createElement("tbody");
+  /**@type {HTMLTableElement}*/
   const table = document.getElementById("cal_table");
   table.innerHTML = ""; // clear the table
 
+  // get the formatter functions based on the language
+  // --------------------------------------------------------------
+  /**@type {(txt: string) => string} */
+  const txt_formatter = isEnglish ? (txt) => txt : (txt) => en_ar.get(txt);
+  /**@type {(n: number) => string} */
+  const num_formatter = isEnglish
+    ? (n) => leading_zero_num_en(n)
+    : (n) => leading_zero_num_ar(to_arabic_number(n));
+  // --------------------------------------------------------------
+
+  /**
+   * @param {string} gregorian gregorian month name
+   * @param {string} hijri hijri month name
+   * @description set the table header
+   */
   const set_t_header = (gregorian, hijri) => {
-    if (lang) {
-      tbody.innerHTML += `
+    tbody.innerHTML += `
       <tr class="header">
-        <th scope="col" class="g-month" data-en="${gregorian}">${gregorian}</th>
-        <th scope="col" class="h-month" data-en="${hijri}">${hijri}</th>
-        <th scope="col" class="prayer fajr"data-en="Fajr">Fajr</th>
-        <th scope="col" class="prayer sunrise" data-en="Sunrise">Sunrise</th>
-        <th scope="col" class="prayer dhuhr"data-en="Dhuhr">Dhuhr</th>
-        <th scope="col" class="prayer asr"data-en="Asr">Asr</th>
-        <th scope="col" class="prayer maghrib" data-en="Maghrib">Maghrib</th>
-        <th scope="col" class="prayer isha" data-en="Isha">Isha</th>
-      </tr>
-      `;
-    } else {
-      tbody.innerHTML += `
-      <tr class="header">
-        <th scope="col" class="g-month" data-en="${gregorian}">${en_ar.get(
-        gregorian
-      )}</th>
-        <th scope="col" class="h-month" data-en="${hijri}">${en_ar.get(
-        hijri
-      )}</th>
-        <th scope="col" class="prayer fajr" data-en="Fajr">${en_ar.get(
+        <th scope="col" class="g-month" data-en="${gregorian}">${txt_formatter(
+      gregorian
+    )}</th>
+        <th scope="col" class="h-month" data-en="${hijri}">${txt_formatter(
+      hijri
+    )}</th>
+        <th scope="col" class="prayer fajr" data-en="Fajr">${txt_formatter(
           "Fajr"
         )}</th>
-        <th scope="col" class="prayer sunrise" data-en="Sunrise">${en_ar.get(
+        <th scope="col" class="prayer sunrise" data-en="Sunrise">${txt_formatter(
           "Sunrise"
         )}</th>
-        <th scope="col" class="prayer dhuhr" data-en="Dhuhr">${en_ar.get(
+        <th scope="col" class="prayer dhuhr" data-en="Dhuhr">${txt_formatter(
           "Dhuhr"
         )}</th>
-        <th scope="col" class="prayer asr" data-en="Asr">${en_ar.get(
+        <th scope="col" class="prayer asr" data-en="Asr">${txt_formatter(
           "Asr"
         )}</th>
-        <th scope="col" class="prayer maghrib" data-en="Maghrib">${en_ar.get(
+        <th scope="col" class="prayer maghrib" data-en="Maghrib">${txt_formatter(
           "Maghrib"
         )}</th>
-        <th scope="col" class="prayer isha" data-en="Isha">${en_ar.get(
+        <th scope="col" class="prayer isha" data-en="Isha">${txt_formatter(
           "Isha"
         )}</th>
       </tr>
       `;
-    }
+  };
+
+  /**
+   * @param {string} time
+   * @description get the hours and minutes from the time
+   * @returns {{hr: number, min: number}} the hours and minutes
+   */
+  const parse_time = (time) => {
+    const [hr, min] = get_time_only(time).split(":");
+    return { hr: +hr, min: +min };
   };
 
   const gregorian_month = data[0].date.gregorian.month;
@@ -868,7 +973,6 @@ function build_month_calendar(data) {
   let curr_hijri_month = data[0].date.hijri.month.number;
 
   data.forEach((day) => {
-    // console.log("today:", day);
     const gregorian = day.date.gregorian;
     const hijri = day.date.hijri;
     const timings = day.timings;
@@ -879,7 +983,6 @@ function build_month_calendar(data) {
     }
 
     const en_weekday = gregorian.weekday.en.slice(0, 3).toLowerCase();
-    const ar_weekday = en_ar.get(en_weekday);
     const g_day = +gregorian.day;
     const h_day = +hijri.day;
     /** @type {string[]} */
@@ -890,18 +993,92 @@ function build_month_calendar(data) {
     tr.dataset.day = g_day;
     tr.tabIndex = 0;
 
+    const hr_min = {
+      fajr: parse_time(timings.Fajr),
+      sunrise: parse_time(timings.Sunrise),
+      dhuhr: parse_time(timings.Dhuhr),
+      asr: parse_time(timings.Asr),
+      maghrib: parse_time(timings.Maghrib),
+      isha: parse_time(timings.Isha),
+    };
+
+    // build the table row
     tr.innerHTML = `
       <th scope="row">
-        <span>${g_day}</span> 
-        <span data-en="${en_weekday}">${lang ? en_weekday : ar_weekday}</span>
+        <span data-num="${g_day}" data-no-leading-zero>${
+      isEnglish ? g_day : to_arabic_number(g_day)
+    }</span> 
+        <span data-en="${en_weekday}">${txt_formatter(en_weekday)}</span>
       </th>
-      <th scope="row">${h_day}</th>
-      <td>${get_time_only(timings.Fajr)}</td>
-      <td>${get_time_only(timings.Sunrise)}</td>
-      <td>${get_time_only(timings.Dhuhr)}</td>
-      <td>${get_time_only(timings.Asr)}</td>
-      <td>${get_time_only(timings.Maghrib)}</td>
-      <td>${get_time_only(timings.Isha)}</td>
+      <th scope="row" data-num="${h_day}" data-no-leading-zero>${
+      isEnglish ? h_day : to_arabic_number(h_day)
+    }</th>
+      <td>
+        <div class="holder">
+          <span data-num="${hr_min.fajr.hr}">${num_formatter(
+      hr_min.fajr.hr
+    )}</span>
+          <span>:</span>
+          <span data-num="${hr_min.fajr.min}">${num_formatter(
+      hr_min.fajr.min
+    )}</span>
+        </div>
+      </td>
+      <td>
+        <div class="holder">
+          <span data-num="${hr_min.sunrise.hr}">${num_formatter(
+      hr_min.sunrise.hr
+    )}</span>
+          <span>:</span>
+          <span data-num="${hr_min.sunrise.min}">${num_formatter(
+      hr_min.sunrise.min
+    )}</span>
+        </div>
+      </td>
+      <td>
+        <div class="holder">
+          <span data-num="${hr_min.dhuhr.hr}">${num_formatter(
+      hr_min.dhuhr.hr
+    )}</span>
+          <span>:</span>
+          <span data-num="${hr_min.dhuhr.min}">${num_formatter(
+      hr_min.dhuhr.min
+    )}</span>
+        </div>
+      </td>
+      <td>
+        <div class="holder">
+          <span data-num="${hr_min.asr.hr}">${num_formatter(
+      hr_min.asr.hr
+    )}</span>
+          <span>:</span>
+          <span data-num="${hr_min.asr.min}">${num_formatter(
+      hr_min.asr.min
+    )}</span>
+        </div>
+      </td>
+      <td>
+        <div class="holder">
+          <span data-num="${hr_min.maghrib.hr}">${num_formatter(
+      hr_min.maghrib.hr
+    )}</span>
+          <span>:</span>
+          <span data-num="${hr_min.maghrib.min}">${num_formatter(
+      hr_min.maghrib.min
+    )}</span>
+        </div>
+      </td>
+      <td>
+        <div class="holder">
+          <span data-num="${hr_min.isha.hr}">${num_formatter(
+      hr_min.isha.hr
+    )}</span>
+          <span>:</span>
+          <span data-num="${hr_min.isha.min}">${num_formatter(
+      hr_min.isha.min
+    )}</span>
+        </div>
+    </td>
     `;
 
     // set the holiday if exist
@@ -911,11 +1088,19 @@ function build_month_calendar(data) {
       const holidayDate = document.createElement("div");
       const frag = document.createDocumentFragment();
 
+      // close button
+      const closeBtn = document.createElement("button");
+      const xIcon = document.createElement("i");
+      xIcon.className = "fa-solid fa-xmark";
+      closeBtn.className = "close-btn";
+      closeBtn.appendChild(xIcon);
+
       tr.classList.add("holiday");
-      td.className = "holiday-info";
+      td.className = "holiday-info popup";
+      td.setAttribute("popover", "");
       holidayTitle.className = "holiday-title";
       holidayTitle.dataset.en = "Holiday";
-      holidayTitle.textContent = lang ? "Holiday" : en_ar.get("Holiday");
+      holidayTitle.textContent = txt_formatter("Holiday");
       holidayDate.className = "holiday-date";
 
       // add date to the holiday
@@ -927,13 +1112,16 @@ function build_month_calendar(data) {
         const div = document.createElement("div");
         if (isText) {
           div.dataset.en = data;
-          div.textContent = lang ? data : en_ar.get(data);
+          div.textContent = txt_formatter(data);
         } else {
           div.textContent = data;
+          div.dataset.num = data;
+          div.dataset.noLeadingZero = true;
         }
         holidayDate.appendChild(div);
       });
 
+      frag.appendChild(closeBtn);
       frag.appendChild(holidayTitle);
       frag.appendChild(holidayDate);
 
@@ -962,19 +1150,18 @@ function build_month_calendar(data) {
               break;
           }
         } else {
-          hd_name = holidayName;
+          hd_name = holidayName.trim();
         }
 
         div.dataset.en = hd_name;
-        div.textContent = lang ? hd_name : en_ar.get(hd_name);
+        div.textContent = txt_formatter(hd_name);
         frag.appendChild(div);
       });
 
       td.appendChild(frag);
       tr.appendChild(td);
-
-      // add click event listener to the holiday table row
     }
+
     tbody.appendChild(tr);
 
     // make the next is the current
@@ -987,15 +1174,17 @@ function build_month_calendar(data) {
   }
 
   tbody.querySelectorAll("tr.holiday").forEach((tr) => {
-    tr.addEventListener("click", (e) => {
-      const isOpen = tr.classList.contains("show");
-      if (isOpen) {
-        if (e.target.matches(".holiday-info")) {
-          e.currentTarget.classList.remove("show");
-        }
-      } else {
-        e.currentTarget.classList.add("show");
-      }
+    /**@type {HTMLTableRowElement} */
+    const table_row = tr;
+    /**@type {HTMLTableCellElement} */
+    const info_popover = table_row.querySelector(".popup");
+    const close_btn = info_popover.querySelector(".close-btn");
+
+    close_btn.popoverTargetElement = info_popover;
+    close_btn.popoverTargetAction = "hide";
+
+    table_row.addEventListener("click", () => {
+      info_popover.showPopover();
     });
   });
 
@@ -1018,7 +1207,8 @@ async function update_month_calendar(month, year) {
     build_month_calendar(data);
     return true;
   }
-  show_bad_internet();
+  // show_bad_internet();
+  show_app_fetch_error_popup();
   return false;
 }
 
@@ -1031,13 +1221,19 @@ function prepare_navigation_switches() {
 
     const set_page = () => {
       if (page !== curr_page) {
+        // show the new page
         page.classList.add("picked");
+        // deactivate the current button
         curr_page.classList.remove("picked");
+        // activate the new button
         btn.classList.add("picked");
+        // hide the current page
         document
           .getElementById(map.get(curr_page.id))
           .classList.remove("picked");
+        // save the new page reference
         curr_page = page;
+        save_last_page(curr_page.id);
       }
     };
 
@@ -1048,13 +1244,17 @@ function prepare_navigation_switches() {
 function prepare_table_selections() {
   let prev_month = "";
   let prev_year = "";
+  /**@type {HTMLSelectElement} */
   const month_sel_ele = document.getElementById("t_sel_month");
+  /**@type {HTMLSelectElement} */
   const year_sel_ele = document.getElementById("t_sel_year");
 
   month_sel_ele.addEventListener("focus", (e) => {
+    // save the previous option to revert back if faild
     prev_month = e.target.value;
   });
   year_sel_ele.addEventListener("focus", (e) => {
+    // save the previous option to revert back if faild
     prev_year = e.target.value;
   });
 
@@ -1064,6 +1264,7 @@ function prepare_table_selections() {
     month_sel_ele.blur();
     update_month_calendar(month, year).then((res) => {
       if (!res) {
+        // roll back
         month_sel_ele.value = prev_month;
         console.error("failed to update month");
       }
@@ -1075,6 +1276,7 @@ function prepare_table_selections() {
     month_sel_ele.blur();
     update_month_calendar(month, year).then((res) => {
       if (!res) {
+        // roll back
         year_sel_ele.value = prev_year;
         console.error("failed to update year");
       }
@@ -1110,7 +1312,7 @@ function set_update_time_interval() {
     min_ele.dataset.num = mins;
     sec_ele.dataset.num = secs;
 
-    if (lang) {
+    if (isEnglish) {
       hr_ele.textContent = leading_zero_num_en(hrs);
       min_ele.textContent = leading_zero_num_en(mins);
       sec_ele.textContent = leading_zero_num_en(secs);
@@ -1122,7 +1324,7 @@ function set_update_time_interval() {
   }, 1000);
 }
 
-function requestnotificationAccess() {
+function request_notification_access() {
   // notification access request to the user
   document.addEventListener(
     "click",

@@ -17,6 +17,8 @@
       format("woff");
   font-weight: 100 1000;
   font-display: swap;
+  descent-override: 40%;
+  ascent-override: 105%;
 }
 /* ar cairo */
 @font-face {
@@ -52,7 +54,6 @@
 html {
   scroll-behavior: smooth;
   color: #fff;
-  container: html / inline-size;
   white-space: nowrap;
 }
 
@@ -106,7 +107,6 @@ body {
   padding: var(--padding);
   display: flex;
   flex-direction: column;
-  container: body / inline-size;
 
   &.ar {
     direction: rtl;
@@ -168,6 +168,49 @@ body {
   }
 }
 
+.popup {
+  width: unset;
+  height: calc(100% - (var(--header-height) + var(--padding) * 3));
+  padding: 30px;
+  background-color: inherit;
+  transition-property: opacity, display, transform, overlay;
+  transition-duration: 0.5s;
+  transition-behavior: allow-discrete;
+  opacity: 0;
+  display: none;
+  transform: var(--transform-up);
+  contain: layout;
+  color: inherit;
+  border-radius: inherit;
+  margin: auto;
+
+  &::backdrop {
+    opacity: 0;
+    background-color: #00000085;
+    transition-property: opacity;
+    transition-duration: 0.5s;
+  }
+
+  &:popover-open {
+    opacity: 1;
+    display: flex;
+    transform: none;
+
+    @starting-style {
+      opacity: 0;
+      transform: var(--transform-up);
+    }
+
+    &::backdrop {
+      opacity: 1;
+
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+}
+
 #appLoaderScreen {
   position: absolute;
   top: 50%;
@@ -181,7 +224,7 @@ body {
   justify-content: center;
   contain: layout;
   z-index: 10;
-  background-color: color-mix(in oklab, var(--orange1) 50%, var(--green1));
+  background-color: color-mix(in oklab, var(--orange1) 50%, var(--green2));
   transition-property: opacity, visibility;
   transition-duration: 1s;
 
@@ -205,6 +248,127 @@ body {
     z-index: 1;
     transition: transform 1s;
     transform: translateY(calc((var(--header-height) + var(--padding)) * -1));
+  }
+}
+
+#appErrorScreen {
+  --transform-up: translateY(100px);
+  --transform-down: translateY(-100px);
+  border-radius: var(--border-rad);
+  align-items: center;
+  contain: layout;
+  z-index: 10;
+  background-color: color-mix(in oklab, var(--orange1) 50%, var(--green2));
+  overflow: auto;
+  margin: auto var(--padding) var(--padding);
+  padding: 0;
+
+  & .close-btn {
+    position: static;
+    font-size: 1.35rem;
+    background-color: var(--green3);
+    padding: 7px 15px;
+    border-radius: inherit;
+    transition-property: background-color;
+    margin-bottom: 20px;
+
+    &:hover {
+      background-color: var(--green1);
+    }
+  }
+
+  & .holder {
+    height: 100%;
+    padding: 30px;
+    background-color: inherit;
+    border-radius: inherit;
+    align-content: center;
+    margin-inline: auto;
+  }
+
+  & button {
+    appearance: none;
+    background-color: transparent;
+    transition-property: scale, color;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5rem;
+
+    &:active {
+      scale: 0.9;
+    }
+
+    &:hover {
+      color: var(--orange1);
+    }
+  }
+
+  & #infoPopover {
+    margin: auto var(--padding) var(--padding);
+
+    &::backdrop {
+      opacity: 0;
+      background-color: #00000075;
+      transition-property: opacity;
+      transition-duration: 0.5s;
+    }
+
+    &:popover-open {
+      opacity: 1;
+      display: flex;
+      transform: none;
+
+      @starting-style {
+        opacity: 0;
+        transform: var(--transform-up);
+      }
+
+      &::backdrop {
+        opacity: 1;
+
+        @starting-style {
+          opacity: 0;
+        }
+      }
+    }
+
+    & i.fa-location-pin-lock {
+      font-size: 5rem;
+      color: var(--green2);
+    }
+  }
+
+  & i.fa-wifi {
+    font-size: 5rem;
+    color: var(--green2);
+    animation: pulse 2s ease-in-out infinite alternate;
+  }
+
+  & h2 {
+    font-size: 3rem;
+    color: var(--orange1);
+  }
+
+  & p {
+    font-size: 1.2rem;
+    white-space: normal;
+    margin-top: 30px;
+    padding-bottom: 20px;
+    max-width: 500px;
+  }
+
+  &.fade-in {
+    opacity: 1;
+    display: flex;
+    transform: none;
+
+    @starting-style {
+      opacity: 0;
+      transform: var(--transform-up);
+    }
   }
 }
 
@@ -237,13 +401,7 @@ header {
     }
 
     & > .logo {
-      & > img {
-        width: 60px;
-      }
-
-      & > .txt {
-        font-size: 2rem;
-      }
+      scale: 1.4;
     }
   }
 
@@ -258,10 +416,10 @@ header {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    transition: scale 1s;
 
     & > img {
       width: 60px;
-      transition: width 1s;
     }
 
     & > .txt {
@@ -270,7 +428,6 @@ header {
       font-size: 1.75rem;
       word-spacing: -5px;
       position: relative;
-      transition: font-size 1s;
 
       & > span:first-child {
         color: var(--orange1);
@@ -289,6 +446,42 @@ header {
         & > span:last-child {
           color: var(--green1);
         }
+      }
+    }
+  }
+}
+@media (width < 750px) {
+  :root {
+    --header-height: 35px;
+  }
+
+  header {
+    & > .logo {
+      gap: 7px;
+
+      & > img {
+        width: 50px;
+      }
+      & > .txt {
+        font-size: 1.4rem;
+      }
+    }
+  }
+}
+@media (width < 350px) {
+  :root {
+    --header-height: 30px;
+  }
+
+  header {
+    & > .logo {
+      gap: 5px;
+
+      & > img {
+        width: 40px;
+      }
+      & > .txt {
+        font-size: 1.25rem;
       }
     }
   }
@@ -320,13 +513,6 @@ main {
       height: 100%;
     }
 
-    & i.bad-net {
-      position: absolute;
-      color: var(--green2);
-      animation: pulse 0.5s linear 0.5s infinite alternate;
-      display: none;
-    }
-
     & i.icon {
       color: var(--white-col);
     }
@@ -341,11 +527,6 @@ main {
       flex-direction: column;
       gap: 5px;
       position: relative;
-
-      & > i.bad-net {
-        top: 0;
-        left: 0;
-      }
 
       & > .date {
         display: flex;
@@ -386,7 +567,7 @@ main {
           }
         }
       }
-      @container html (inline-size >= 870px) {
+      @media (width >= 870px) {
         .date > .d-m-y {
           font-size: 1.3rem;
         }
@@ -449,7 +630,7 @@ main {
 
           & > .prayer-name {
             font-size: 4rem;
-            margin-block-end: 15px;
+            margin-block-end: 10px;
           }
 
           & > .txt {
@@ -466,14 +647,14 @@ main {
             }
 
             & > * {
-              width: 45px;
+              width: 50px;
             }
           }
         }
-        @container html (inline-size < 870px) {
+        @media (width < 870px) {
           .next-prayer {
             & > .prayer-name {
-              font-size: calc(1.5rem + 2vw);
+              font-size: 2.25rem;
             }
 
             & > .txt {
@@ -483,8 +664,11 @@ main {
             & > .clock.counter-down {
               font-size: 1.65rem;
 
-              & > * {
-                width: 25px;
+              & > *:nth-child(even) {
+                width: 20px;
+              }
+              & > *:nth-child(odd) {
+                width: 45px;
               }
             }
           }
@@ -524,7 +708,7 @@ main {
             }
           }
         }
-        @container html (inline-size >= 870px) {
+        @media (width >= 870px) {
           .prayers {
             flex-direction: row;
             align-items: center;
@@ -555,7 +739,7 @@ main {
           }
         }
       }
-      @container html (inline-size < 870px) {
+      @media (width < 870px) {
         .times {
           flex-direction: row;
 
@@ -565,6 +749,7 @@ main {
             & > .prayer {
               & > .icon-name {
                 font-size: 1.15rem;
+                align-items: center;
 
                 & > i {
                   font-size: 1.35rem;
@@ -578,12 +763,12 @@ main {
           }
         }
       }
-      @container html (inline-size < 500px) {
+      @media (width < 500px) {
         .times {
           flex-direction: column;
         }
       }
-      @container html (inline-size < 300px) {
+      @media (width < 300px) {
         .times {
           & > .prayers > .prayer {
             flex-direction: column;
@@ -603,17 +788,24 @@ main {
 
     & > #monthCalendarPage {
       padding: var(--padding);
-      border-radius: var(--border-rad);
-      flex-direction: column;
-      gap: 10px;
       position: absolute;
       top: 50%;
       left: 50%;
       translate: -50% -50%;
       white-space: normal;
       font-family: "cairo", monospace;
+      overflow: auto;
 
-      & > .hijri-m-y {
+      & > .holder {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        height: 100%;
+        min-height: 300px;
+      }
+
+      & .hijri-m-y {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -622,7 +814,7 @@ main {
         color: var(--green1);
       }
 
-      & > .controls {
+      & .controls {
         display: flex;
         gap: 10px;
         justify-content: center;
@@ -640,13 +832,6 @@ main {
             opacity: 1;
             animation-play-state: running;
           }
-        }
-
-        & > .bad-net {
-          top: 50%;
-          left: 50%;
-          translate: -50% -50%;
-          padding-block-start: 3px;
         }
 
         & > select {
@@ -679,12 +864,11 @@ main {
         }
       }
 
-      & > .t-wrapper {
+      & .t-wrapper {
         flex: 1;
         font-weight: bold;
-        border-radius: 10px;
-        overflow-y: auto;
-        overscroll-behavior-block: contain;
+        border-radius: 5px;
+        overflow: auto;
 
         & > table {
           width: 100%;
@@ -703,6 +887,13 @@ main {
 
               & > td {
                 background-color: var(--orange5);
+
+                & > .holder {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  direction: ltr;
+                }
               }
             }
 
@@ -739,29 +930,40 @@ main {
               border: none;
 
               &.holiday {
-                box-shadow: inset 0 0 0 3px #fff;
-
-                &.show > .holiday-info {
-                  display: flex;
-                  animation: fade-in var(--transition) forwards;
-                }
+                box-shadow: inset 0 0 0 2px #fff;
+                cursor: pointer;
 
                 & > .holiday-info {
-                  position: fixed;
-                  z-index: 100;
                   color: var(--green1);
                   background-color: var(--green2);
-                  top: 50%;
-                  left: 50%;
-                  translate: -50% -50%;
-                  display: none;
                   flex-direction: column;
                   gap: 10px;
                   align-items: center;
                   padding: 20px;
-                  width: 100%;
-                  height: 100%;
                   overflow: auto;
+                  border-radius: var(--border-rad);
+                  margin: auto var(--padding) var(--padding);
+                  cursor: auto;
+
+                  & > .close-btn {
+                    font-size: 1.5rem;
+                    background-color: transparent;
+                    color: #eeeeee;
+                    display: flex;
+                    align-self: flex-end;
+                    transition: color 200ms;
+
+                    & > i {
+                      pointer-events: none;
+                    }
+
+                    &:hover {
+                      color: var(--orange1);
+                    }
+                    &:active {
+                      scale: 0.85;
+                    }
+                  }
 
                   & > .holiday-date {
                     display: flex;
@@ -778,7 +980,8 @@ main {
                     border-bottom: 5px solid var(--orange1);
                   }
 
-                  & > :nth-child(n + 3) {
+                  /* only style the hoildays */
+                  & > :nth-child(n + 4) {
                     background-color: var(--orange1);
                     border-radius: 10px;
                     padding: 10px 15px;
@@ -805,7 +1008,7 @@ main {
       align-items: center;
       flex-direction: column;
       position: relative;
-      min-height: 400px;
+      min-height: 430px;
 
       & > .option {
         display: flex;
@@ -862,6 +1065,7 @@ main {
           z-index: 0;
           width: 50px;
           aspect-ratio: 1;
+          margin-inline: auto;
 
           &:is(.loading, .success, .faild) {
             & > i.fa-location-dot {
@@ -1010,7 +1214,7 @@ main {
       }
     }
   }
-  @container html (inline-size < 870px) {
+  @media (width < 870px) {
     nav {
       /* horizontal mode */
       flex-direction: row;
@@ -1034,13 +1238,13 @@ main {
       }
     }
   }
-  @container html (inline-size < 750px) {
+  @media (width < 750px) {
     nav {
       gap: 15px;
     }
   }
 }
-@container html (inline-size < 870px) {
+@media (width < 870px) {
   main {
     /* vertical mode */
     flex-direction: column-reverse;
@@ -1049,6 +1253,23 @@ main {
       border-start-start-radius: inherit;
       border-start-end-radius: inherit;
       border-end-end-radius: 0;
+    }
+  }
+}
+
+@media (orientation: landscape) {
+  main {
+    /* vertical mode */
+    flex-direction: row;
+
+    & > nav {
+      flex-direction: column;
+      border-end-end-radius: 0;
+      border-start-start-radius: inherit;
+    }
+
+    & > .content {
+      border-end-end-radius: inherit;
     }
   }
 }
@@ -1084,26 +1305,5 @@ main {
 @keyframes rotateY3d {
   to {
     transform: rotate3d(0, 1, 0, 360deg);
-  }
-}
-
-/* @media for mobile */
-@media (height <= 750px) {
-  :root {
-    --header-height: 35px;
-  }
-
-  header {
-    & > .logo {
-      gap: 8px;
-
-      & > img {
-        width: 45px;
-      }
-
-      & > .txt {
-        font-size: 1.3rem;
-      }
-    }
   }
 }

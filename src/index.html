@@ -4,24 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta http-equiv="x-ua-compatible" content="IE=edge" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <!-- preloads -->
-    <link rel="preload" href="./assets/fa/css/all.min.css" as="style" />
-    <link
-      rel="preload"
-      href="./assets/fonts/Cairo/Cairo-VariableFont_slnt_wght.woff2"
-      as="font"
-    />
-    <link
-      rel="preload"
-      href="./assets/fonts/ElMessiri/ElMessiri-VariableFont_wght.woff2"
-      as="font"
-    />
-    <link
-      rel="preload"
-      href="./assets/fonts/Madimi_One/MadimiOne-Regular.woff2"
-      as="font"
-    />
+    <meta name="mobile-web-app-capable" content="yes" />
 
     <!-- ico 32×32 -->
     <link
@@ -35,7 +18,7 @@
     <link rel="icon" href="./assets/imgs/logo.svg" type="image/svg+xml" />
     <!-- 180×180 -->
     <link rel="apple-touch-icon" href="./assets/imgs/logo.png" />
-    <link rel="manifest" href="../manifest.webmanifest" />
+    <!-- <link rel="manifest" href="../manifest.webmanifest" /> -->
     <link rel="stylesheet" href="./css/main.css" />
     <link rel="stylesheet" href="./assets/fa/css/all.min.css" />
     <script src="./js/main.js" type="module" defer></script>
@@ -86,6 +69,52 @@
 
     <main>
       <div id="appLoaderScreen"></div>
+      <div id="appErrorScreen" class="popup" popover>
+        <div class="holder">
+          <button
+            popovertarget="infoPopover"
+            popoveraction="show"
+            class="info-btn"
+          >
+            <i class="fa-solid fa-circle-info"></i>
+          </button>
+
+          <div class="popup" id="infoPopover" popover>
+            <div class="holder">
+              <button popovertarget="infoPopover" popoveraction="hide">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+
+              <i class="fa-solid fa-location-pin-lock"></i>
+
+              <p>
+                <span
+                  data-en="The app only requires access to your location once, when you first launch it, "
+                ></span>
+                <span
+                  data-en="and it won't need access again unless you request a location update from within the app"
+                ></span>
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <i class="fa-solid fa-wifi"></i>
+            <h2 data-en="Error"></h2>
+          </div>
+
+          <p
+            data-en="Please make sure you are connected to the internet and allow the app to access your location"
+          ></p>
+
+          <button
+            popovertarget="appErrorScreen"
+            popoveraction="hide"
+            class="close-btn"
+            data-en="Close"
+          ></button>
+        </div>
+      </div>
 
       <nav>
         <button id="prayer_times_btn">
@@ -106,8 +135,6 @@
 
       <div class="content">
         <div id="prayerTimesPage" class="page">
-          <!-- bad internet icon -->
-          <i class="fa-solid fa-wifi bad-net"></i>
           <div class="date">
             <div class="weekday">
               <div id="today" data-en="Today">Today</div>
@@ -161,18 +188,6 @@
             </div>
 
             <div class="prayers" id="prayersTimes">
-              <div class="prayer firstthird">
-                <div class="icon-name">
-                  <i class="fa-solid fa-cloud-moon"></i>
-                  <div class="name" data-en="Firstthird">Firstthird</div>
-                </div>
-                <div class="time">
-                  <span class="hr">--</span>
-                  <span>:</span>
-                  <span class="min">--</span>
-                </div>
-              </div>
-
               <div class="prayer lastthird">
                 <div class="icon-name">
                   <i class="fa-solid fa-hands-praying"></i>
@@ -269,6 +284,18 @@
                 </div>
               </div>
 
+              <div class="prayer firstthird">
+                <div class="icon-name">
+                  <i class="fa-solid fa-cloud-moon"></i>
+                  <div class="name" data-en="Firstthird">Firstthird</div>
+                </div>
+                <div class="time">
+                  <span class="hr">--</span>
+                  <span>:</span>
+                  <span class="min">--</span>
+                </div>
+              </div>
+
               <div class="prayer midnight">
                 <div class="icon-name">
                   <i class="fa-solid fa-star icon"></i>
@@ -285,25 +312,25 @@
         </div>
 
         <div id="monthCalendarPage" class="page">
-          <div class="hijri-m-y">
-            <div class="t_hijri_1st">
-              <span class="month" data-en="-"></span>
-              <span class="year">-</span>
+          <div class="holder">
+            <div class="hijri-m-y">
+              <div class="t_hijri_1st">
+                <span class="month" data-en="-"></span>
+                <span class="year">-</span>
+              </div>
+              <span>-</span>
+              <div class="t_hijri_2nd">
+                <span class="month" data-en="-">-</span>
+                <span class="year">-</span>
+              </div>
             </div>
-            <span>-</span>
-            <div class="t_hijri_2nd">
-              <span class="month" data-en="-">-</span>
-              <span class="year">-</span>
+            <div class="controls">
+              <select id="t_sel_month"></select>
+              <div id="tableSpinner"><i class="fa-solid fa-sun"></i></div>
+              <select id="t_sel_year"></select>
             </div>
+            <div class="t-wrapper"><table id="cal_table"></table></div>
           </div>
-          <div class="controls">
-            <!-- bad internet icon -->
-            <i class="fa-solid fa-wifi bad-net"></i>
-            <select id="t_sel_month"></select>
-            <div id="tableSpinner"><i class="fa-solid fa-sun"></i></div>
-            <select id="t_sel_year"></select>
-          </div>
-          <div class="t-wrapper"><table id="cal_table"></table></div>
         </div>
 
         <div id="settingsPage" class="page">
