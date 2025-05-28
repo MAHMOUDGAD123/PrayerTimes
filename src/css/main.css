@@ -967,7 +967,7 @@ main {
 
                   & > .holiday-date {
                     display: flex;
-                    gap: 7px;
+                    gap: 10px;
                     align-items: center;
                     font-size: 1.5rem;
                     color: var(--orange1);

@@ -1114,7 +1114,7 @@ function build_month_calendar(data) {
           div.dataset.en = data;
           div.textContent = txt_formatter(data);
         } else {
-          div.textContent = data;
+          div.textContent = isEnglish ? data : to_arabic_number(data);
           div.dataset.num = data;
           div.dataset.noLeadingZero = true;
         }
