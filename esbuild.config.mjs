@@ -104,7 +104,7 @@ await esbuild
   })
   .then(() => {
     console.timeEnd("T");
-    console.log("Built Successfully 🚀");
+    console.log("Built Successfully ⚡");
   })
   .catch((err) => {
     console.error("ESBuild Error:", err);

@@ -293,9 +293,9 @@ async function app_initiate(update = false) {
       throw new Error("Faild To Get The Prayers Times 🟥");
     }
 
-    if (currentAddress) {
+    if (!update && currentAddress) {
       set_location();
-    } else {
+    } else {  
       currentAddress = await fetch_address(latitude, longitude);
       if (!currentAddress) {
         throw new Error("Faild To Get Your Address 🟥");

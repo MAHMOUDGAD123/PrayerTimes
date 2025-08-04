@@ -3,17 +3,17 @@
 /* en */
 @font-face {
   font-family: "en_font";
-  src: url("../assets/fonts/Madimi_One/MadimiOne-Regular.woff2") format("woff2"),
-    url("../assets/fonts/Madimi_One/MadimiOne-Regular.woff") format("woff");
+  src: url("../assets/fonts/Madimi_One/MadimiOne.woff2") format("woff2"),
+    url("../assets/fonts/Madimi_One/MadimiOne.woff") format("woff");
   font-weight: 100 1000;
   font-display: swap;
 }
 /* ar */
 @font-face {
   font-family: "ar_font";
-  src: url("../assets/fonts/ElMessiri/ElMessiri-VariableFont_wght.woff2")
+  src: url("../assets/fonts/ElMessiri/ElMessiri.woff2")
       format("woff2"),
-    url("../assets/fonts/ElMessiri/ElMessiri-VariableFont_wght.woff")
+    url("../assets/fonts/ElMessiri/ElMessiri.woff")
       format("woff");
   font-weight: 100 1000;
   font-display: swap;
@@ -23,9 +23,9 @@
 /* ar cairo */
 @font-face {
   font-family: "cairo";
-  src: url("../assets/fonts/Cairo/Cairo-VariableFont_slnt_wght.woff2")
+  src: url("../assets/fonts/Cairo/Cairo.woff2")
       format("woff2"),
-    url("../assets/fonts/Cairo/Cairo-VariableFont_slnt_wght.woff")
+    url("../assets/fonts/Cairo/Cairo.woff")
       format("woff");
   font-weight: 100 1000;
   font-display: swap;
