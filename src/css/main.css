@@ -100,7 +100,7 @@ img {
 }
 
 body {
-  height: 100dvh;
+  height: 100vh;
   background-color: var(--body-bg);
   font-family: var(--en_font), monospace;
   gap: var(--padding);
