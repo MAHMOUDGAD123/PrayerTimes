@@ -19,60 +19,48 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Fetch event - network-first strategy
 self.addEventListener("fetch", (event) => {
   // Skip non-GET requests and browser extensions
-  const shouldHandle = (request) => {
+  function shouldHandle(request) {
     return (
       request.method === "GET" &&
       !request.url.startsWith("chrome-extension://") &&
       request.url.startsWith(self.location.origin)
     );
-  };
+  }
 
   // Cache successful responses
-  const isCacheable = (response) => {
+  function isCacheable(response) {
     return (
       response?.ok &&
       response.status !== 206 &&
       ["basic", "cors"].includes(response.type)
     );
-  };
+  }
 
   if (!shouldHandle(event.request)) return;
 
   event.respondWith(
     (async () => {
-      // 1. Start network request immediately
-      const networkFetch = fetch(event.request.clone(), {
-        cache: "no-store", // Bypass HTTP cache
-      });
-
-      // 2. Always check cache in parallel
-      const cacheMatch = caches.match(event.request);
-
       try {
-        // 3. Create proper race with timeout
-        const networkPromise = Promise.race([
-          networkFetch,
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Network timeout")), 10000)
-          ),
-        ]);
+        // Uncomment this if you want cache-first strategy
+        // const cachedResponse = await caches.match(event.request);
+        // if (cachedResponse) return cachedResponse;
 
-        // 4. Get fastest response (network vs cache)
-        const response = await networkPromise.catch(() => cacheMatch);
+        // Fetch from network
+        const networkResponse = await fetch(event.request);
 
-        // 5. Update cache only AFTER successful response
-        if (response instanceof Response && isCacheable(response)) {
+        if (isCacheable(networkResponse)) {
+          // Only cache same-origin
           const cache = await caches.open(STATIC_CACHE_NAME);
-          cache.put(event.request, response.clone());
+          cache.put(event.request, networkResponse.clone());
         }
 
-        return response;
-      } catch (error) {
-        // 6. Ultimate fallback - shouldn't happen with above logic
-        return (await cacheMatch) || Response.error();
+        return networkResponse;
+      } catch (err) {
+        // Final fallback to cached response
+        const fallback = await caches.match(event.request);
+        return fallback || Response.error();
       }
     })()
   );
