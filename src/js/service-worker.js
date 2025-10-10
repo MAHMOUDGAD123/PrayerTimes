@@ -9,14 +9,17 @@ self.addEventListener("install", (event) => {
       try {
         // 1. Fetch cache manifest
         const response = await fetch("cache.json");
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+        if (!response.ok)
+          throw new Error(`HTTP error status: ${response.status}`);
+
         // 2. Parse JSON list
         const FILES_TO_CACHE = await response.json();
-        
+
         // 3. Convert to absolute URLs (common issue source)
-        const absoluteUrls = FILES_TO_CACHE.map(url => new URL(url, self.location.href).href);
-        
+        const absoluteUrls = FILES_TO_CACHE.map(
+          (url) => new URL(url, self.location.href).href
+        );
+
         // 4. Add to cache with improved error handling
         const cache = await caches.open(STATIC_CACHE_NAME);
 
@@ -24,14 +27,13 @@ self.addEventListener("install", (event) => {
         for (const url of absoluteUrls) {
           try {
             await cache.add(url);
-            console.log('Cached:', url);
           } catch (err) {
             console.error(`Failed to cache ${url}:`, err);
             // Consider skipping failed files rather than aborting
           }
         }
       } catch (err) {
-        console.error('Install failed:', err);
+        console.error("Install failed:", err);
         // Critical failure - skip waiting to avoid broken SW
         self.skipWaiting();
       }
@@ -42,19 +44,26 @@ self.addEventListener("install", (event) => {
 // Activate event - clean up old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys => 
-      Promise.all(
-        keys.filter(key => key !== STATIC_CACHE_NAME)
-            .map(key => caches.delete(key))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== STATIC_CACHE_NAME)
+            .map((key) => caches.delete(key))
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
 // Fetch event - cache-first strategy
 self.addEventListener("fetch", (event) => {
   // Skip non-GET requests and browser extensions
-  if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
+  if (
+    event.request.method !== "GET" ||
+    event.request.url.startsWith("chrome-extension://")
+  ) {
     return;
   }
 
@@ -67,15 +76,19 @@ self.addEventListener("fetch", (event) => {
 
         // 2. Fetch from network
         const networkResponse = await fetch(event.request);
-        
+
         // 3. Cache successful responses
-        if (networkResponse.ok && 
-            networkResponse.status !== 206 &&  // Skip partial content
-            networkResponse.type === 'basic') { // Only cache same-origin
+        if (
+          (networkResponse.ok &&
+            networkResponse.status !== 206 && // Skip partial content
+            networkResponse.type === "basic") ||
+          networkResponse.type === "cors"
+        ) {
+          // Only cache same-origin
           const cache = await caches.open(STATIC_CACHE_NAME);
           cache.put(event.request, networkResponse.clone());
         }
-        
+
         return networkResponse;
       } catch (err) {
         // Final fallback to cached response

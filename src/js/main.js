@@ -1313,8 +1313,9 @@ function set_update_time_interval() {
 // Register the service worker
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
+    const swUrl = new URL("service-worker.js", self.location.href).href;
     navigator.serviceWorker
-      .register("service-worker.js", { type: "module" })
+      .register(swUrl, { type: "module" })
       .then(() => {
         console.log("Service Worker Registered");
       })

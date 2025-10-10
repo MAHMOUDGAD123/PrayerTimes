@@ -8,7 +8,9 @@ function getAllFiles(dirPath, arrayOfFiles = []) {
     if (fs.statSync(filePath).isDirectory()) {
       getAllFiles(filePath, arrayOfFiles);
     } else {
-      arrayOfFiles.push(path.relative("src", filePath).replaceAll("\\", "/"));
+      if (!filePath.includes("service-worker")) {
+        arrayOfFiles.push(path.relative("src", filePath).replaceAll("\\", "/"));
+      }
     }
   });
   return arrayOfFiles;
