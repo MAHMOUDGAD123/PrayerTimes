@@ -258,7 +258,6 @@ set_lang();
     set_update_time_interval();
     prepare_navigation_switches();
     hide_app_loader_screen();
-    request_notification_access();
   } else {
     show_app_error_screen();
   }
@@ -295,7 +294,7 @@ async function app_initiate(update = false) {
 
     if (!update && currentAddress) {
       set_location();
-    } else {  
+    } else {
       currentAddress = await fetch_address(latitude, longitude);
       if (!currentAddress) {
         throw new Error("Faild To Get Your Address 🟥");
@@ -685,7 +684,7 @@ function set_counter_down(key) {
 
     if (diff <= 0) {
       clearInterval(intervId);
-      let athan_time_out = 60000;
+      let athan_time_out = 30000;
 
       // save zero in the data-num attribute
       hr_ele.dataset.num = 0;
@@ -700,19 +699,6 @@ function set_counter_down(key) {
         ".times > .next-prayer > .counter-down"
       );
       counter_down.classList.add("pulse");
-
-      // show athan notification
-      if (Notification.permission === "granted") {
-        try {
-          const prayer_name = get_prayer_name(key);
-          const notificationTitle = isEnglish
-            ? prayer_name
-            : en_ar.get(prayer_name);
-          new Notification(notificationTitle, {
-            icon: "../assets/imgs/logo.png",
-          });
-        } catch (_) {}
-      }
 
       setTimeout(() => {
         counter_down.classList.remove("pulse");
@@ -1324,15 +1310,16 @@ function set_update_time_interval() {
   }, 1000);
 }
 
-function request_notification_access() {
-  // notification access request to the user
-  document.addEventListener(
-    "click",
-    (e) => {
-      if (Notification.permission !== "granted") {
-        Notification.requestPermission();
-      }
-    },
-    { once: true }
-  );
+// Register the service worker
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("service-worker.js", { type: "module" })
+      .then(() => {
+        console.log("Service Worker Registered");
+      })
+      .catch((err) => {
+        console.error("SW registration failed:", err.message);
+      });
+  });
 }

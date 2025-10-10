@@ -1,0 +1,33 @@
+{
+  "name": "PrayerTimes",
+  "short_name": "PrayerTimes",
+  "description": "A lightning-fast, offline-friendly, location-based Islamic prayer Progressive Web App.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#076e0020",
+  "orientation": "natural",
+  "theme_color": "#076e0050",
+  "lang": "en-US",
+  "categories": [
+    "PWA",
+    "muslim",
+    "muslim prayer times"
+  ],
+  "icons": [
+    {
+      "src": "./assests/imgs/logo.svg",
+      "type": "image/svg",
+      "sizes": "192x192"
+    },
+    {
+      "src": "./assests/imgs/logo.svg",
+      "type": "image/svg",
+      "sizes": "196x196"
+    },
+    {
+      "src": "./assests/imgs/logo.svg",
+      "type": "image/svg",
+      "sizes": "512x512"
+    }
+  ]
+}

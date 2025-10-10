@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && node --no-deprecation esbuild.config.mjs"
+    "cache": "node ./tools/pwa-cache.js",
+    "build": "npm run cache && npm run clean && node --no-deprecation esbuild.config.mjs"
   },
   "repository": {
     "type": "git",
