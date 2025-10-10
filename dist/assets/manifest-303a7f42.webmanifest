@@ -2,7 +2,7 @@
   "name": "PrayerTimes",
   "short_name": "PrayerTimes",
   "description": "A lightning-fast, offline-friendly, location-based Islamic prayer Progressive Web App.",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#076e0020",
   "orientation": "natural",
   "categories": [
