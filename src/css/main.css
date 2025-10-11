@@ -48,6 +48,7 @@ html {
   scroll-behavior: smooth;
   color: #fff;
   white-space: nowrap;
+  opacity: 0;
 }
 
 *,

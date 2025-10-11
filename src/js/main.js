@@ -33,25 +33,6 @@ let globalNumberFormatter = new Intl.NumberFormat("AR-EG", {
  */
 let isEnglish = read_lang();
 
-// Fix loader lang switch at initial load
-window.addEventListener(
-  "DOMContentLoaded",
-  () => {
-    /** @type {HTMLElement} */
-    const loadingEle = document.querySelector(".loading");
-    /** @type {boolean} */
-    const isEn = _Storage.read("__prayertimes_lang__", "localStorage");
-    if (isEn) return;
-    /**@type {HTMLElement[]} */
-    const all_txt = loadingEle.querySelectorAll("[data-en]");
-    all_txt.forEach((el) => {
-      const en_txt = el.dataset.en;
-      el.textContent = en_ar.get(en_txt);
-    });
-  },
-  { once: true }
-);
-
 // page_btn_id => page_id
 const page_btn = new Map([
   ["prayerTimesPage", "prayer_times_btn"],
