@@ -30,12 +30,11 @@ self.addEventListener("fetch", (event) => {
     );
   }
 
-  // Cache successful responses
   function isCacheable(response) {
     return (
-      response?.ok &&
-      response.status !== 206 &&
-      ["basic", "cors"].includes(response.type)
+      response?.ok && // Cache successful responses
+      response.status !== 206 && // ignore partial content
+      ["basic", "cors"].includes(response.type) // Only cache same-origin
     );
   }
 
@@ -54,7 +53,6 @@ self.addEventListener("fetch", (event) => {
         const networkResponse = await fetch(event.request);
 
         if (isCacheable(networkResponse)) {
-          // Only cache same-origin
           const cache = await caches.open(STATIC_CACHE_NAME);
           cache.put(event.request, networkResponse.clone());
         }
