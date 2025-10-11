@@ -19,6 +19,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Fetch & Cache
 self.addEventListener("fetch", (event) => {
   // Skip non-GET requests and browser extensions
   function shouldHandle(request) {
@@ -40,12 +41,14 @@ self.addEventListener("fetch", (event) => {
 
   if (!shouldHandle(event.request)) return;
 
+  console.log(event.url);
+
   event.respondWith(
     (async () => {
       try {
         // Uncomment this if you want cache-first strategy
-        // const cachedResponse = await caches.match(event.request);
-        // if (cachedResponse) return cachedResponse;
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) return cachedResponse;
 
         // Fetch from network
         const networkResponse = await fetch(event.request);
