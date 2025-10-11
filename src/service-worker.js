@@ -46,7 +46,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     (async () => {
       try {
-        // Uncomment this if you want cache-first strategy
+        // Use cache-first strategy
         const cachedResponse = await caches.match(event.request);
         if (cachedResponse) return cachedResponse;
 
