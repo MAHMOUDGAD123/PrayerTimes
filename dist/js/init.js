@@ -1,1 +1,0 @@
-import{a as e,b as n}from"../chunk-SB3CSEDB.js";window.addEventListener("DOMContentLoaded",()=>{let o=document.querySelector(".loading");e.read("__prayertimes_lang__","localStorage")||(o.style.direction="rtl",document.querySelectorAll("[data-en]").forEach(t=>{let r=t.dataset.en;t.textContent=n.get(r)}))},{once:!0});
