@@ -1,8 +1,5 @@
 const STATIC_CACHE_NAME = "static-v1";
 
-// Remove the IIFE wrapper - listeners must be top-level
-// --------------------------------------------
-
 // Activate event - clean up old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
@@ -39,8 +36,6 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (!shouldHandle(event.request)) return;
-
-  console.log(event.url);
 
   event.respondWith(
     (async () => {
