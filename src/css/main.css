@@ -11,10 +11,8 @@
 /* ar */
 @font-face {
   font-family: "ar_font";
-  src: url("../assets/fonts/ElMessiri/ElMessiri.woff2")
-      format("woff2"),
-    url("../assets/fonts/ElMessiri/ElMessiri.woff")
-      format("woff");
+  src: url("../assets/fonts/ElMessiri/ElMessiri.woff2") format("woff2"),
+    url("../assets/fonts/ElMessiri/ElMessiri.woff") format("woff");
   font-weight: 100 1000;
   font-display: swap;
   descent-override: 40%;
@@ -23,10 +21,8 @@
 /* ar cairo */
 @font-face {
   font-family: "cairo";
-  src: url("../assets/fonts/Cairo/Cairo.woff2")
-      format("woff2"),
-    url("../assets/fonts/Cairo/Cairo.woff")
-      format("woff");
+  src: url("../assets/fonts/Cairo/Cairo.woff2") format("woff2"),
+    url("../assets/fonts/Cairo/Cairo.woff") format("woff");
   font-weight: 100 1000;
   font-display: swap;
 }
@@ -100,7 +96,7 @@ img {
 }
 
 body {
-  height: 100vh;
+  height: 100dvh;
   background-color: var(--body-bg);
   font-family: var(--en_font), monospace;
   gap: var(--padding);
@@ -1306,4 +1302,36 @@ main {
   to {
     transform: rotate3d(0, 1, 0, 360deg);
   }
+}
+
+/* Spinner styles & animations */
+@keyframes spinner-rotate {
+  0% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(810deg);
+  }
+}
+
+@keyframes spinner-dash {
+  0% {
+    stroke-dasharray: 0 314.159;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 157.08 157.08;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 0 314.159;
+    stroke-dashoffset: -157.08;
+  }
+}
+
+.spinner-circle {
+  animation: spinner-rotate 2s linear infinite,
+    spinner-dash 2s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, stroke-dasharray, stroke-dashoffset;
 }
