@@ -389,7 +389,7 @@ function hide_app_loader_screen() {
       setTimeout(() => {
         // remove the loading screen and the header spinner
         appLoaderScreen.remove();
-        header.querySelector(".spinner").remove();
+        header.querySelector(".loader-spinner").remove();
       }, 2000);
     }, 700);
   }, 1500);
@@ -414,7 +414,7 @@ function show_app_error_screen() {
     setTimeout(() => {
       // remove the loading screen and the header spinner
       appLoaderScreen.remove();
-      header.querySelector(".spinner").remove();
+      header.querySelector(".loader-spinner").remove();
     }, 500);
   }, 1500);
 }
