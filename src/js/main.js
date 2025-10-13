@@ -183,6 +183,17 @@ function is_end_of_day() {
   return curr_prayer_key >= prayers_and_times.size;
 }
 
+/**
+ * @param {boolean} isOnline The state
+ */
+function setAppNetworkState(isOnline) {
+  if (isOnline) {
+    document.getElementById("appNetState").classList.add("online");
+  } else {
+    document.getElementById("appNetState").classList.remove("online");
+  }
+}
+
 /**@param {string} text*/
 function translate_text(text) {
   return isEnglish ? text : en_ar.get(text);
@@ -276,7 +287,7 @@ async function app_initiate(update = false) {
     const { latitude, longitude } = coordinates;
 
     // get data from api
-    const data = await fetch_prayers_times(latitude, longitude);
+    const { data, isOnline } = await fetch_prayers_times(latitude, longitude);
 
     // do nothing if null
     if (data) {
@@ -292,15 +303,18 @@ async function app_initiate(update = false) {
       throw new Error("Faild To Get The Prayers Times 🟥");
     }
 
+    setAppNetworkState(isOnline);
+
     if (!update && currentAddress) {
       set_location();
     } else {
       currentAddress = await fetch_address(latitude, longitude);
-      if (!currentAddress) {
-        throw new Error("Faild To Get Your Address 🟥");
+      if (currentAddress) {
+        set_location();
+        save_address();
+      } else {
+        console.error("Faild To Get Your Address 🟥");
       }
-      set_location();
-      save_address();
     }
     return true;
   } catch (error) {
@@ -492,10 +506,12 @@ async function update_location() {
 async function update_dates_times() {
   // use this function to update the (dates & times) at the end of the day
   // get data from api
-  const data = await fetch_prayers_times(
+  const { data, isOnline } = await fetch_prayers_times(
     coordinates.latitude,
     coordinates.longitude
   );
+
+  setAppNetworkState(isOnline);
 
   // do nothing if null
   if (data) {
@@ -1182,13 +1198,18 @@ function build_month_calendar(data) {
 async function update_month_calendar(month, year) {
   const loading = document.getElementById("tableSpinner");
   loading.classList.add("run");
-  const data = await fetch_prayers_times(
+
+  const { data, isOnline } = await fetch_prayers_times(
     coordinates.latitude,
     coordinates.longitude,
     month,
     year
   );
+
   loading.classList.remove("run");
+
+  setAppNetworkState(isOnline);
+
   if (data) {
     build_month_calendar(data);
     return true;

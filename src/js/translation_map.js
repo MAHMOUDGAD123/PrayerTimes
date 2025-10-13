@@ -82,6 +82,8 @@ export const en_ar = new Map([
   ["MG", "إم جي"],
   ["Designed-by", "تصميم"],
   ["Athan", "أذان"],
+  ["Online", "متصل"],
+  ["Offline", "غير متصل"],
   // holidays
   ["Lailat-ul-Miraj", "ليلة الإسراء والمعراج"],
   ["Lailat-ul-Bara'at", "ليلة النصف من شعان"],

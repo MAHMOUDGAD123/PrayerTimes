@@ -1,3 +1,4 @@
+import { _Storage } from "./storage.js";
 /**
  * @param {number} lat latitude
  * @param {number} lng longitude
@@ -13,7 +14,7 @@ export const fetch_address = async (lat, lng) => {
     if (!response.ok) {
       throw new Error("Faild to Fetch Location 🟥");
     }
-    console.log("Fetch Locaiton 🟩");
+    console.log("Fetch Location 🟩");
     const { display_name, address } = await response.json();
     const state = address.state ? address.state : "";
     const city_town = address.city || address.town;
@@ -31,7 +32,7 @@ export const fetch_address = async (lat, lng) => {
  * @param {number} lng longitude
  * @param {number} month the month (1 -> 12)
  * @param {number} year the year
- * @returns {Promise<unknown[] | null>}
+ * @returns {Promise<{ data: unknown[] | null; isOnline: boolean }>}
  */
 export const fetch_prayers_times = async (
   lat,
@@ -43,19 +44,27 @@ export const fetch_prayers_times = async (
   const _month = month || now.getMonth() + 1;
   const _year = year || now.getFullYear();
   const url = `https://api.aladhan.com/v1/calendar/${_year}/${_month}?latitude=${lat}&longitude=${lng}&method=5`;
+  const date_storage_key = "__prayertimes_data__";
 
   try {
-    const request = new Request(url, { method: "GET" });
+    const request = new Request(url, { method: "GET", cache: "no-cache" });
     const response = await fetch(request);
 
     if (!response.ok) {
       throw new Error("Faild To Fetch Prayer Tiems 🟥");
     }
 
-    return (await response.json()).data;
+    const data = (await response.json()).data;
+    console.info("Online");
+    _Storage.save(date_storage_key, data, "localStorage");
+    return { data, isOnline: true };
   } catch (error) {
+    console.error("Offline");
     console.error(error);
-    return null;
+    return {
+      data: _Storage.read(date_storage_key, "localStorage"),
+      isOnline: false,
+    };
   }
 };
 
@@ -83,7 +92,7 @@ export const fetch_geolocation = () => {
     /**@type {PositionOptions} */
     const options = {
       enableHighAccuracy: true,
-      timeout: 10000,
+      timeout: 15000,
       maximumAge: 0,
     };
 
