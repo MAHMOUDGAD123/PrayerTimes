@@ -4,22 +4,29 @@
   "description": "A lightning-fast, offline-friendly, location-based Islamic prayer Progressive Web App.",
   "display": "standalone",
   "background_color": "#076e0020",
-  "categories": ["PWA", "muslim", "muslim prayer times"],
+  "categories": [
+    "PWA",
+    "muslim",
+    "muslim prayer times"
+  ],
   "icons": [
     {
-      "src": "./assests/imgs/logo.svg",
+      "src": "imgs/logo.svg",
       "type": "image/svg",
       "sizes": "192x192"
     },
     {
-      "src": "./assests/imgs/logo.svg",
+      "src": "imgs/logo.svg",
       "type": "image/svg",
       "sizes": "196x196"
     },
     {
-      "src": "./assests/imgs/logo.svg",
+      "src": "imgs/logo.svg",
       "type": "image/svg",
       "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": "/",
+  "orientation": "any",
+  "lang": "en"
 }

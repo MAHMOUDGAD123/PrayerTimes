@@ -8,6 +8,13 @@ import { en_ar } from "./translation_map.js";
 import { _Storage } from "./storage.js";
 //==================== API End =====================
 
+// Fix loader lang switch at initial load 😎💩
+window.onload = () => {
+  // by default the (documentElement) opacity is '0' in the main.css
+  // and we fix this here
+  document.documentElement.style.opacity = "1";
+};
+
 //==================== Data & tools Start =====================
 const lang_storage_key = "__prayertimes_lang__";
 const coords_storage_key = "__prayertimes_coords__";

@@ -8,10 +8,10 @@
     />
     <meta http-equiv="x-ua-compatible" content="IE=edge" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="manifest" href="assets/manifest.webmanifest" />
     <link
       rel="icon"
-      href="./assets/imgs/logo.svg"
+      href="assets/imgs/logo.svg"
       type="image/x-icon"
       sizes="any"
     />
@@ -19,18 +19,6 @@
     <link rel="stylesheet" href="assets/fa/css/all.min.css" />
     <script src="js/main.js" type="module" defer></script>
     <script src="service-worker.js" type="module" defer></script>
-    <script type="module">
-      // Fix loader lang switch at initial load 😎💩
-      window.addEventListener(
-        "load",
-        () => {
-          // by default the (documentElement) opacity is '0' in the main.css
-          // and we fix this here
-          document.documentElement.style.opacity = "1";
-        },
-        { once: true }
-      );
-    </script>
     <title>PrayerTimes</title>
   </head>
   <body>

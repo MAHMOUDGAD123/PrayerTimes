@@ -1,35 +1,6 @@
 import esbuild from "esbuild";
 import htmlPlugin from "@chialab/esbuild-plugin-html";
 import cssImportPlugin from "@chialab/esbuild-plugin-css-import";
-import fs from "fs";
-
-// Add a custom plugin to handle font files
-const fontPlugin = {
-  name: "font-loader",
-  setup(build) {
-    build.onLoad({ filter: /\.(woff2?|ttf|eot|otf)$/ }, async (args) => {
-      return {
-        contents: await fs.promises.readFile(args.path),
-        loader: "file",
-      };
-    });
-  },
-};
-
-// Add removeConsolePlugin
-const removeConsolePlugin = {
-  name: "remove-console",
-  setup(build) {
-    build.onLoad({ filter: /\.js$/ }, async (args) => {
-      const source = await fs.promises.readFile(args.path, "utf8");
-      const contents = source.replace(
-        /console\.(log|debug|info|warn|error)\((.*?)\);?/g,
-        ""
-      );
-      return { contents, loader: "js" };
-    });
-  },
-};
 
 console.time("T");
 
@@ -38,8 +9,11 @@ await esbuild
     entryPoints: ["src/index.html"],
     bundle: true,
     minify: true,
-    outdir: "dist",
     metafile: true,
+    outdir: "dist",
+    target: ["es2020"],
+    platform: "browser",
+    drop: ["console"],
     loader: {
       ".woff": "file",
       ".woff2": "file",
@@ -47,8 +21,10 @@ await esbuild
       ".eot": "file",
       ".otf": "file",
       ".png": "file",
+      ".svg": "file",
+      ".ico": "file",
     },
-    assetNames: "assets/[name]-[hash]",
+    assetNames: "[dir]/[name]",
     plugins: [
       htmlPlugin({
         minify: true,
@@ -98,8 +74,6 @@ await esbuild
           ],
         },
       }),
-      fontPlugin,
-      removeConsolePlugin,
     ],
   })
   .then(() => {
